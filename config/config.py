@@ -6,6 +6,7 @@ load_dotenv()
 class Config:
     # Bot tokens and IDs
     BOT_TOKEN = os.getenv("BOT_TOKEN")
+    START_PIC = os.getenv("START_PIC")
     
     # Support multiple owners (comma separated in .env)
     OWNER_IDS = [int(id.strip()) for id in os.getenv("OWNER_IDS", "").split(",") if id.strip()]
