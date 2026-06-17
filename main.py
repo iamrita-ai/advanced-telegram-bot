@@ -112,6 +112,7 @@ async def main():
     
     # Add handlers
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("dl", dl_handler))
     application.add_handler(CallbackQueryHandler(callback_query_handler))
     application.add_handler(CommandHandler("cookies", cookies_handler))
     application.add_handler(MessageHandler(filters.Document.FileExtension("txt"), cookies_handler))
