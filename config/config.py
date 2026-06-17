@@ -9,7 +9,8 @@ class Config:
     START_PIC = os.getenv("START_PIC")
     
     # Support multiple owners (comma separated in .env)
-    OWNER_IDS = [int(id.strip()) for id in os.getenv("OWNER_IDS", "").split(",") if id.strip()]
+    _owner_ids_raw = os.getenv("OWNER_IDS", "")
+    OWNER_IDS = [int(id.strip()) for id in _owner_ids_raw.split(",") if id.strip()] if _owner_ids_raw else []
     
     # Log channel for activities
     LOG_CHANNEL_ID = int(os.getenv("LOG_CHANNEL_ID", 0))

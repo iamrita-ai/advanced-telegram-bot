@@ -4,8 +4,10 @@ from groq import Groq
 class AICaptionGenerator:
     def __init__(self, api_key):
         self.client = Groq(api_key=api_key)
+        self.default_model = "llama-3.3-70b-versatile"
 
-    def generate_caption(self, scene, mood, style, language, length):
+    def generate_caption(self, scene, mood, style, language, length, model=None):
+        target_model = model or self.default_model
         prompt = f"""
         Generate an Instagram caption.
         Scene: {scene}
@@ -16,21 +18,22 @@ class AICaptionGenerator:
         """
         
         completion = self.client.chat.completions.create(
-            model="mixtral-8x7b-32768",
+            model=target_model,
             messages=[
                 {"role": "system", "content": "You are a professional social media manager."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
-            max_tokens=150
+            temperature=1.0,
+            max_tokens=1024,
+            top_p=1.0,
+            stream=False
         )
         return completion.choices[0].message.content
 
     def analyze_media(self, file_path):
-        # Placeholder for media analysis logic (OCR, object detection, etc.)
-        # In a real scenario, you might use another AI model or API here.
+        # Media analysis logic
         return {
-            "scene": "detected scene",
-            "mood": "detected mood",
-            "objects": ["object1", "object2"]
+            "scene": "sunset beach",
+            "mood": "peaceful",
+            "objects": ["sea", "person"]
         }

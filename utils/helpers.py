@@ -25,5 +25,26 @@ async def check_force_sub(bot, user_id):
         return False
 
 def get_language_keyboard():
-    buttons = [[InlineKeyboardButton(lang, callback_data=f"setlang_{lang}")] for lang in Config.SUPPORTED_LANGUAGES]
+    # Note: As of python-telegram-bot 20.x, 'style' is not yet natively in InlineKeyboardButton.
+    # We use a dictionary-based approach to pass the 'style' parameter for Bot API 9.4+
+    buttons = []
+    for lang in Config.SUPPORTED_LANGUAGES:
+        # success (green), primary (blue), danger (red)
+        style = "success" if lang == "English" else "primary"
+        button = {
+            "text": lang,
+            "callback_data": f"setlang_{lang}",
+            "style": style
+        }
+        buttons.append([button])
     return InlineKeyboardMarkup(buttons)
+
+# Custom function to create styled buttons
+def create_styled_button(text, callback_data=None, url=None, style="primary"):
+    button = {"text": text}
+    if callback_data:
+        button["callback_data"] = callback_data
+    if url:
+        button["url"] = url
+    button["style"] = style
+    return button
