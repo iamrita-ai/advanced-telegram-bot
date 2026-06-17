@@ -4,12 +4,13 @@ import asyncio
 import psutil
 from aiohttp import web
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from config.config import Config
 from utils.helpers import check_force_sub
 from database.mongo import Database
 from modules.downloader import UniversalDownloader
 from modules.instagram import InstagramDownloader
+from modules.music import MusicDownloader
 
 # Setup logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -17,6 +18,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 db = Database(Config.MONGODB_URI)
 universal_dl = UniversalDownloader()
 insta_dl = InstagramDownloader()
+music_dl = MusicDownloader()
 
 # --- Health Check Server ---
 async def handle_health_check(request):
@@ -30,14 +32,10 @@ async def start_server():
     site = web.TCPSite(runner, '0.0.0.0', Config.PORT)
     await site.start()
 
-# --- Helper for Colored Buttons ---
-def create_button(text, url=None, callback_data=None, style=None):
-    # Note: style is not natively supported by python-telegram-bot yet.
-    # We pass it in a way that doesn't crash, but actual coloring depends on client support.
+def create_button(text, url=None, callback_data=None):
     btn_dict = {"text": text}
     if url: btn_dict["url"] = url
     if callback_data: btn_dict["callback_data"] = callback_data
-    # We remove 'style' from the constructor call to avoid TypeError
     return InlineKeyboardButton(**btn_dict)
 
 # --- Bot Handlers ---
@@ -54,16 +52,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photos = await context.bot.get_user_profile_photos(user.id, limit=1)
         start_pic = photos.photos[0][-1].file_id if photos.total_count > 0 else "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
 
-    # Layout: Row 1 (2x2), Row 2 (Full), Row 3 (Full)
     keyboard = [
-        [
-            create_button("Report Errors 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"),
-            create_button("Language 🌐", callback_data="change_lang")
-        ],
-        [
-            create_button("Owner 👑", url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"),
-            create_button("Support 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")
-        ],
+        [create_button("Report Errors 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"), create_button("Language 🌐", callback_data="change_lang")],
+        [create_button("Owner 👑", url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"), create_button("Support 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")],
         [create_button(f"👤 {user.first_name}", url=f"tg://user?id={user.id}")],
         [create_button("📜 Terms of Service", callback_data="view_tos")]
     ]
@@ -72,23 +63,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     intro = "✨ <b>Welcome to Insta Music</b> ✨\n\nI am your minimal media assistant. Use /help to explore."
     await update.message.reply_photo(photo=start_pic, caption=intro, reply_markup=reply_markup, parse_mode='HTML')
 
+async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.message.text.replace("#music", "").strip() if "#music" in update.message.text else " ".join(context.args)
+    if not query: return await update.message.reply_text("Usage: #music <song name>")
+    msg = await update.message.reply_text(f"🎵 Searching for: <b>{query}</b>...", parse_mode='HTML')
+    await music_dl.search_and_download(query, msg)
+
 async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = " ".join(context.args)
     if not url: return await update.message.reply_text("Usage: /dl <url>")
     msg = await update.message.reply_text("⏳ Processing your link...")
     await universal_dl.download(url, msg)
-
-async def profile_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    username = " ".join(context.args)
-    if not username: return await update.message.reply_text("Usage: /profile <username>")
-    msg = await update.message.reply_text(f"📸 Fetching profile: @{username}")
-    await insta_dl.download_profile(username, msg)
-
-async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.message.text.replace("#music", "").strip() if "#music" in update.message.text else " ".join(context.args)
-    if not query: return await update.message.reply_text("Usage: #music <song name>")
-    await update.message.reply_text(f"🎵 Searching for: <b>{query}</b>...", parse_mode='HTML')
-    # Implement actual music search logic here
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = (
@@ -104,31 +89,13 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(help_text, parse_mode='HTML')
 
-async def cookies_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in Config.OWNER_IDS: return
-    data = " ".join(context.args)
-    if not data: return await update.message.reply_text("❌ Please provide cookie data.")
-    insta_dl.save_cookies(data)
-    await update.message.reply_text("✅ Cookies updated and saved permanently.")
-
-async def admin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in Config.OWNER_IDS: return
-    cpu = psutil.cpu_percent()
-    ram = psutil.virtual_memory().percent
-    users = await db.get_all_users()
-    stats = f"📊 <b>Stats</b>\n\n👥 Users: {len(users)}\n🖥 CPU: {cpu}%\n💾 RAM: {ram}%"
-    await update.message.reply_text(stats, parse_mode='HTML')
-
 async def main():
     asyncio.create_task(start_server())
     application = ApplicationBuilder().token(Config.BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("dl", dl_handler))
-    application.add_handler(CommandHandler("profile", profile_handler))
     application.add_handler(CommandHandler("music", music_handler))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("admin", admin_handler))
-    application.add_handler(CommandHandler("cookies", cookies_handler))
     application.add_handler(MessageHandler(filters.Regex(r'^#music'), music_handler))
     
     logging.info("Bot is starting...")
