@@ -1,7 +1,6 @@
 import os
 import logging
 import asyncio
-import time
 import psutil
 from aiohttp import web
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -40,89 +39,90 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         join_btn = InlineKeyboardMarkup([[InlineKeyboardButton("Join Channel", url=f"https://t.me/{Config.FORCE_SUB_CHANNEL[1:]}")]])
         return await update.message.reply_text(f"❌ Access Denied!\n\nPlease join {Config.FORCE_SUB_CHANNEL} to use me.", reply_markup=join_btn)
 
-    # User Profile Pic Logic
     start_pic = Config.START_PIC
     if not start_pic:
         photos = await context.bot.get_user_profile_photos(user.id, limit=1)
         start_pic = photos.photos[0][-1].file_id if photos.total_count > 0 else "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
 
-    # Button Layout: Row 1 (2 buttons), Row 2 (2 buttons), Row 3 (Full), Row 4 (Full)
+    # Layout: Row 1 (2x2), Row 2 (Full), Row 3 (Full)
     keyboard = [
         [
-            InlineKeyboardButton("Report Errors 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"),
-            InlineKeyboardButton("Language 🌐", callback_data="change_lang")
+            {"text": "Report Errors 🛠", "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}", "style": "danger"},
+            {"text": "Language 🌐", "callback_data": "change_lang", "style": "primary"}
         ],
         [
-            InlineKeyboardButton("Owner 👑", url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"),
-            InlineKeyboardButton("Support 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")
+            {"text": "Owner 👑", "url": f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}", "style": "success"},
+            {"text": "Support 🛠", "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}", "style": "primary"}
         ],
-        [InlineKeyboardButton(f"👤 {user.first_name}", url=f"tg://user?id={user.id}")],
-        [InlineKeyboardButton("📜 Terms of Service", callback_data="view_tos")]
+        [{"text": f"👤 {user.first_name}", "url": f"tg://user?id={user.id}", "style": "primary"}],
+        [{"text": "📜 Terms of Service", "callback_data": "view_tos", "style": "primary"}]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    # Note: Using raw dict for style support in some clients, but standard InlineKeyboardButton for others
+    reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(**b) if isinstance(b, dict) else b for b in row] for row in keyboard])
     
     intro = "✨ <b>Welcome to Insta Music</b> ✨\n\nI am your minimal media assistant. Use /help to explore."
-    
-    try:
-        await update.message.reply_photo(photo=start_pic, caption=intro, reply_markup=reply_markup, parse_mode='HTML')
-    except Exception:
-        await update.message.reply_text(intro, reply_markup=reply_markup, parse_mode='HTML')
+    await update.message.reply_photo(photo=start_pic, caption=intro, reply_markup=reply_markup, parse_mode='HTML')
 
 async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = " ".join(context.args)
     if not url: return await update.message.reply_text("Usage: /dl <url>")
-    msg = await update.message.reply_text("⏳ Processing...")
-    await universal_dl.download(url, msg)
+    msg = await update.message.reply_text("⏳ Processing your link...")
+    try:
+        await universal_dl.download(url, msg)
+    except Exception as e:
+        await msg.edit_text(f"❌ Error: {str(e)}")
 
 async def profile_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = " ".join(context.args)
     if not username: return await update.message.reply_text("Usage: /profile <username>")
-    await update.message.reply_text(f"📸 Fetching profile: @{username}")
-    # Call insta_dl.download_profile(username)
+    msg = await update.message.reply_text(f"📸 Fetching profile: @{username}")
+    await insta_dl.download_profile(username, msg)
+
+async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.message.text.replace("#music", "").strip() if "#music" in update.message.text else " ".join(context.args)
+    if not query: return await update.message.reply_text("Usage: #music <song name>")
+    await update.message.reply_text(f"🎵 Searching for: <b>{query}</b>...", parse_mode='HTML')
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    help_map = (
-        "🗺 <b>Bot Mind Map</b>\n\n"
-        "START\n"
-        " ┣ 📥 <b>Downloaders</b>\n"
-        " ┃ ┣ 📸 Instagram (/profile)\n"
-        " ┃ ┣ 🎵 Music (#music)\n"
-        " ┃ ┗ 🎥 Universal (/dl)\n"
-        " ┣ 🛠 <b>Support</b>\n"
-        " ┃ ┣ 👑 Owner (@TechnicalSerena)\n"
-        " ┃ ┗ 📜 TOS (/tos)\n"
-        " ┗ ⚙️ <b>Settings</b>\n"
-        "   ┗ 🌐 Language"
+    help_text = (
+        "🗺 <b>Insta Music Mind Map</b>\n\n"
+        "🚀 <b>Media Downloader</b>\n"
+        " ┣ 📸 <b>Instagram:</b> <code>/profile prince572002</code>\n"
+        " ┣ 🎵 <b>Music:</b> <code>#music Under the influence</code>\n"
+        " ┗ 🎥 <b>Universal:</b> <code>/dl [url]</code>\n\n"
+        "🛠 <b>Support & Info</b>\n"
+        " ┣ 👑 <b>Owner:</b> @TechnicalSerena\n"
+        " ┣ 📜 <b>TOS:</b> /tos (Read before use)\n"
+        " ┗ 🌐 <b>Lang:</b> Change via /start button"
     )
-    await update.message.reply_text(help_map, parse_mode='HTML')
+    await update.message.reply_text(help_text, parse_mode='HTML')
+
+async def cookies_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in Config.OWNER_IDS: return
+    data = " ".join(context.args)
+    if not data: return await update.message.reply_text("❌ Please provide cookie data.")
+    insta_dl.save_cookies(data)
+    await update.message.reply_text("✅ Cookies updated and saved permanently.")
 
 async def admin_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in Config.OWNER_IDS: return
-    
-    # System Stats
     cpu = psutil.cpu_percent()
     ram = psutil.virtual_memory().percent
     users = await db.get_all_users()
-    
-    stats = (
-        "📊 <b>Admin Dashboard</b>\n\n"
-        f"👥 <b>Total Users:</b> {len(users)}\n"
-        f"🖥 <b>CPU Usage:</b> {cpu}%\n"
-        f"💾 <b>RAM Usage:</b> {ram}%\n"
-        f"📶 <b>Latency:</b> {round(context.bot.timeout, 2)}s\n"
-    )
+    stats = f"📊 <b>Stats</b>\n\n👥 Users: {len(users)}\n🖥 CPU: {cpu}%\n💾 RAM: {ram}%"
     await update.message.reply_text(stats, parse_mode='HTML')
 
 async def main():
     asyncio.create_task(start_server())
     application = ApplicationBuilder().token(Config.BOT_TOKEN).build()
-    
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("dl", dl_handler))
     application.add_handler(CommandHandler("profile", profile_handler))
+    application.add_handler(CommandHandler("music", music_handler))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("admin", admin_handler))
-    application.add_handler(CommandHandler("users", admin_handler))
+    application.add_handler(CommandHandler("cookies", cookies_handler))
+    application.add_handler(MessageHandler(filters.Regex(r'^#music'), music_handler))
     
     logging.info("Bot is starting...")
     await application.initialize()

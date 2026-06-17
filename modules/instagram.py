@@ -1,25 +1,32 @@
 import instaloader
 import os
-import time
+import asyncio
 
 class InstagramDownloader:
-    def __init__(self, cookies_path=None):
+    def __init__(self, cookies_path='cookies.txt'):
         self.loader = instaloader.Instaloader()
-        if cookies_path and os.path.exists(cookies_path):
-            try:
-                self.loader.load_session_from_file(cookies_path)
-            except Exception as e:
-                print(f"Error loading cookies: {e}")
+        self.cookies_path = cookies_path
+        self.load_cookies()
 
-    async def download_profile(self, username, progress_callback):
+    def load_cookies(self):
+        if os.path.exists(self.cookies_path):
+            try:
+                self.loader.load_session_from_file('insta_user', filename=self.cookies_path)
+                print("✅ Instagram cookies loaded.")
+            except Exception as e:
+                print(f"❌ Error loading cookies: {e}")
+
+    def save_cookies(self, cookie_data):
+        # Save raw cookie data to file
+        with open(self.cookies_path, 'w') as f:
+            f.write(cookie_data)
+        # Reload after saving
+        self.load_cookies()
+
+    async def download_profile(self, username, message):
         try:
             profile = instaloader.Profile.from_username(self.loader.context, username)
-            # Implement logic to download posts, stories, etc.
-            # Use progress_callback to update the user in Telegram
-            pass
+            await message.edit_text(f"📸 <b>Profile:</b> {profile.full_name}\n🚀 <b>Followers:</b> {profile.followers}\n📦 <b>Posts:</b> {profile.mediacount}", parse_mode='HTML')
+            # Add more download logic here
         except Exception as e:
-            return f"Error: {str(e)}"
-
-    def get_progress_string(self, current, total, speed, eta):
-        percent = (current / total) * 100
-        return f"Done: {current}/{total} MB | Speed: {speed} MB/s | ETA: {eta}s"
+            await message.edit_text(f"❌ Error: {str(e)}")
