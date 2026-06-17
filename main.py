@@ -1,7 +1,6 @@
 import os
 import logging
 import asyncio
-import psutil
 from aiohttp import web
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
@@ -19,6 +18,15 @@ db = Database(Config.MONGODB_URI)
 universal_dl = UniversalDownloader()
 insta_dl = InstagramDownloader()
 music_dl = MusicDownloader()
+
+# --- Multi-Language Strings ---
+LANG_DATA = {
+    "English": {"welcome": "✨ <b>Welcome to Insta Music</b> ✨\n\nI am your minimal media assistant.", "help": "Use /help to explore."},
+    "Hindi": {"welcome": "✨ <b>Insta Music में आपका स्वागत है</b> ✨\n\nमैं आपका मीडिया सहायक हूँ।", "help": "सुविधाओं के लिए /help का उपयोग करें।"},
+    "French": {"welcome": "✨ <b>Bienvenue sur Insta Music</b> ✨\n\nJe suis votre assistant média.", "help": "Utilisez /help pour explorer."},
+    "Korean": {"welcome": "✨ <b>인스타 뮤직에 오신 것을 환영합니다</b> ✨\n\n저는 당신의 미디어 도우미입니다.", "help": "/help를 사용하여 기능을 탐색하십시오."},
+    "Russian": {"welcome": "✨ <b>Добро пожаловать в Insta Music</b> ✨\n\nЯ ваш медиа-помощник.", "help": "Используйте /help для изучения."}
+}
 
 # --- Health Check Server ---
 async def handle_health_check(request):
@@ -41,6 +49,7 @@ def create_button(text, url=None, callback_data=None):
 # --- Bot Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
+    user_lang = await db.get_user_lang(user.id) or "English"
     await db.add_user(user.id, user.username)
     
     if not await check_force_sub(context.bot, user.id):
@@ -60,25 +69,24 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    intro = "✨ <b>Welcome to Insta Music</b> ✨\n\nI am your minimal media assistant. Use /help to explore."
+    intro = f"{LANG_DATA[user_lang]['welcome']}\n\n{LANG_DATA[user_lang]['help']}"
     await update.message.reply_photo(photo=start_pic, caption=intro, reply_markup=reply_markup, parse_mode='HTML')
 
 async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    user_id = query.from_user.id
     await query.answer()
     
     if query.data == "view_tos":
-        tos_text = (
-            "📜 <b>Terms of Service & Privacy Policy</b>\n\n"
-            "1️⃣ <b>Data Collection:</b> We only store your User ID and Username for functionality.\n"
-            "2️⃣ <b>Media:</b> Files are processed and sent; we do not store them permanently.\n"
-            "3️⃣ <b>Cookies:</b> Session cookies are encrypted and used only for your requests.\n"
-            "✅ <i>By using this bot, you agree to these terms.</i>"
-        )
+        tos_text = "📜 <b>Terms of Service</b>\n\n1. Data is secure.\n2. Media is not stored.\n3. Respect copyrights."
         await query.message.reply_text(tos_text, parse_mode='HTML')
     elif query.data == "change_lang":
-        lang_text = "🌐 <b>Select Language:</b>\n\n• English\n• Hindi\n• French\n• Korean\n• Russian"
-        await query.message.reply_text(lang_text, parse_mode='HTML')
+        buttons = [[create_button(lang, callback_data=f"setlang_{lang}")] for lang in LANG_DATA.keys()]
+        await query.message.reply_text("🌐 <b>Select Language:</b>", reply_markup=InlineKeyboardMarkup(buttons), parse_mode='HTML')
+    elif query.data.startswith("setlang_"):
+        new_lang = query.data.split("_")[1]
+        await db.set_user_lang(user_id, new_lang)
+        await query.message.edit_text(f"✅ Language changed to: <b>{new_lang}</b>", parse_mode='HTML')
 
 async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.message.text.replace("#music", "").strip() if "#music" in update.message.text else " ".join(context.args)
@@ -86,14 +94,20 @@ async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = await update.message.reply_text(f"🎵 Searching for: <b>{query}</b>...", parse_mode='HTML')
     await music_dl.search_and_download(query, msg)
 
+async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    url = " ".join(context.args)
+    if not url: return await update.message.reply_text("Usage: /dl <url>")
+    msg = await update.message.reply_text("⏳ Processing your link...")
+    await universal_dl.download(url, msg)
+
 async def main():
     asyncio.create_task(start_server())
     application = ApplicationBuilder().token(Config.BOT_TOKEN).build()
-    
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(callback_query_handler))
-    application.add_handler(MessageHandler(filters.Regex(r'^#music'), music_handler))
+    application.add_handler(CommandHandler("dl", dl_handler))
     application.add_handler(CommandHandler("music", music_handler))
+    application.add_handler(MessageHandler(filters.Regex(r'^#music'), music_handler))
     
     logging.info("Bot is starting...")
     await application.initialize()

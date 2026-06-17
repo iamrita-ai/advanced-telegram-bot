@@ -1,6 +1,7 @@
 import yt_dlp
 import os
 import asyncio
+import requests
 
 class MusicDownloader:
     def __init__(self, download_path='downloads/music'):
@@ -9,6 +10,10 @@ class MusicDownloader:
             os.makedirs(download_path)
 
     async def search_and_download(self, query, message):
+        # Using JioSaavn API for reliable search if YouTube fails
+        # For this implementation, we will use yt-dlp with specific search terms to find better results
+        # and fallback to cookies if provided.
+        
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': f'{self.download_path}/%(title)s.%(ext)s',
@@ -24,19 +29,17 @@ class MusicDownloader:
             'writethumbnail': True,
             'default_search': 'ytsearch1',
             'noplaylist': True,
-            # Use cookies if available to bypass bot detection
             'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-            'quiet': True,
-            'no_warnings': True,
+            # Adding user agent to bypass simple bot detection
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = await asyncio.to_thread(ydl.extract_info, query, download=True)
+                info = await asyncio.to_thread(ydl.extract_info, f"{query} song", download=True)
                 if 'entries' in info:
                     info = info['entries'][0]
                 
-                # Finding the generated mp3 file
                 file_path = None
                 for f in os.listdir(self.download_path):
                     if f.endswith(".mp3"):
@@ -52,10 +55,9 @@ class MusicDownloader:
                         parse_mode='HTML'
                     )
                     os.remove(file_path)
-                    # Clean up thumbnails
                     for f in os.listdir(self.download_path):
                         os.remove(os.path.join(self.download_path, f))
                 else:
-                    await message.edit_text("❌ Failed to process the audio file. Try using cookies.")
+                    await message.edit_text("❌ Failed to process the audio file. Try adding cookies.")
         except Exception as e:
-            await message.edit_text(f"❌ Music Error: {str(e)}\n\n💡 <i>Try uploading your cookies.txt using /cookies</i>", parse_mode='HTML')
+            await message.edit_text(f"❌ Music Error: {str(e)}\n\n💡 <i>Upload cookies.txt to bypass YouTube bot detection.</i>", parse_mode='HTML')
