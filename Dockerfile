@@ -16,8 +16,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the code
 COPY . .
 
-# Expose port for health check
-EXPOSE 8080
-
-# Command to run the bot
+# Render uses the PORT environment variable
 CMD ["python", "main.py"]

@@ -1,6 +1,7 @@
 import os
 import logging
 import asyncio
+import psutil
 from aiohttp import web
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
@@ -13,20 +14,12 @@ from modules.music import MusicDownloader
 
 # Setup logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 db = Database(Config.MONGODB_URI)
 universal_dl = UniversalDownloader()
 insta_dl = InstagramDownloader()
 music_dl = MusicDownloader()
-
-# --- Multi-Language Strings ---
-LANG_DATA = {
-    "English": {"welcome": "✨ <b>Welcome to Insta Music</b> ✨\n\nI am your minimal media assistant.", "help": "Use /help to explore."},
-    "Hindi": {"welcome": "✨ <b>Insta Music में आपका स्वागत है</b> ✨\n\nमैं आपका मीडिया सहायक हूँ।", "help": "सुविधाओं के लिए /help का उपयोग करें।"},
-    "French": {"welcome": "✨ <b>Bienvenue sur Insta Music</b> ✨\n\nJe suis votre assistant média.", "help": "Utilisez /help pour explorer."},
-    "Korean": {"welcome": "✨ <b>인스타 뮤직에 오신 것을 환영합니다</b> ✨\n\n저는 당신의 미디어 도우미입니다.", "help": "/help를 사용하여 기능을 탐색하십시오."},
-    "Russian": {"welcome": "✨ <b>Добро пожаловать в Insta Music</b> ✨\n\nЯ ваш медиа-помощник.", "help": "Используйте /help для изучения."}
-}
 
 # --- Health Check Server ---
 async def handle_health_check(request):
@@ -39,17 +32,21 @@ async def start_server():
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', Config.PORT)
     await site.start()
+    logger.info(f"Health check server started on port {Config.PORT}")
 
-def create_button(text, url=None, callback_data=None):
-    btn_dict = {"text": text}
-    if url: btn_dict["url"] = url
-    if callback_data: btn_dict["callback_data"] = callback_data
-    return InlineKeyboardButton(**btn_dict)
+# --- Multi-Language Strings ---
+LANG_DATA = {
+    "English": {"welcome": "✨ <b>Welcome to Insta Music</b> ✨\n\nI am your minimal media assistant.", "help": "Use /help to explore."},
+    "Hindi": {"welcome": "✨ <b>Insta Music में आपका स्वागत है</b> ✨\n\nमैं आपका मीडिया सहायक हूँ।", "help": "सुविधाओं के लिए /help का उपयोग करें।"},
+    "French": {"welcome": "✨ <b>Bienvenue sur Insta Music</b> ✨\n\nJe suis votre assistant média.", "help": "Utilisez /help pour explorer."},
+    "Korean": {"welcome": "✨ <b>인스타 뮤직에 오신 것을 환영합니다</b> ✨\n\n저는 당신의 미디어 도우미입니다.", "help": "/help를 사용하여 기능을 탐색하십시오."},
+    "Russian": {"welcome": "✨ <b>Добро пожаловать в Insta Music</b> ✨\n\nЯ ваш медиа-помощник.", "help": "Используйте /help для изучения."}
+}
 
 # --- Bot Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    user_lang = await db.get_user_lang(user.id) or "English"
+    user_lang = await db.get_user_lang(user.id)
     await db.add_user(user.id, user.username)
     
     if not await check_force_sub(context.bot, user.id):
@@ -62,10 +59,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         start_pic = photos.photos[0][-1].file_id if photos.total_count > 0 else "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
 
     keyboard = [
-        [create_button("Report Errors 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"), create_button("Language 🌐", callback_data="change_lang")],
-        [create_button("Owner 👑", url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"), create_button("Support 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")],
-        [create_button(f"👤 {user.first_name}", url=f"tg://user?id={user.id}")],
-        [create_button("📜 Terms of Service", callback_data="view_tos")]
+        [InlineKeyboardButton("Report Errors 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"), InlineKeyboardButton("Language 🌐", callback_data="change_lang")],
+        [InlineKeyboardButton("Owner 👑", url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"), InlineKeyboardButton("Support 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")],
+        [InlineKeyboardButton(f"👤 {user.first_name}", url=f"tg://user?id={user.id}")],
+        [InlineKeyboardButton("📜 Terms of Service", callback_data="view_tos")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -81,7 +78,7 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
         tos_text = "📜 <b>Terms of Service</b>\n\n1. Data is secure.\n2. Media is not stored.\n3. Respect copyrights."
         await query.message.reply_text(tos_text, parse_mode='HTML')
     elif query.data == "change_lang":
-        buttons = [[create_button(lang, callback_data=f"setlang_{lang}")] for lang in LANG_DATA.keys()]
+        buttons = [[InlineKeyboardButton(lang, callback_data=f"setlang_{lang}")] for lang in LANG_DATA.keys()]
         await query.message.reply_text("🌐 <b>Select Language:</b>", reply_markup=InlineKeyboardMarkup(buttons), parse_mode='HTML')
     elif query.data.startswith("setlang_"):
         new_lang = query.data.split("_")[1]
@@ -94,26 +91,46 @@ async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = await update.message.reply_text(f"🎵 Searching for: <b>{query}</b>...", parse_mode='HTML')
     await music_dl.search_and_download(query, msg)
 
-async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    url = " ".join(context.args)
-    if not url: return await update.message.reply_text("Usage: /dl <url>")
-    msg = await update.message.reply_text("⏳ Processing your link...")
-    await universal_dl.download(url, msg)
+async def cookies_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in Config.OWNER_IDS: return
+    if not update.message.document or not update.message.document.file_name == "cookies.txt":
+        return await update.message.reply_text("❌ Please upload only 'cookies.txt' file.")
+    
+    file = await context.bot.get_file(update.message.document.file_id)
+    await file.download_to_drive("cookies.txt")
+    await update.message.reply_text("✅ cookies.txt uploaded and saved successfully.")
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.exception(msg="Exception while handling an update:", exc_info=context.error)
 
 async def main():
+    # Start health check server
     asyncio.create_task(start_server())
+    
+    # Build application
     application = ApplicationBuilder().token(Config.BOT_TOKEN).build()
+    
+    # Add handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(callback_query_handler))
-    application.add_handler(CommandHandler("dl", dl_handler))
-    application.add_handler(CommandHandler("music", music_handler))
+    application.add_handler(CommandHandler("cookies", cookies_handler))
+    application.add_handler(MessageHandler(filters.Document.FileExtension("txt"), cookies_handler))
     application.add_handler(MessageHandler(filters.Regex(r'^#music'), music_handler))
+    application.add_handler(CommandHandler("music", music_handler))
+    application.add_error_handler(error_handler)
     
-    logging.info("Bot is starting...")
+    # Start bot with drop_pending_updates
+    logger.info("Bot is starting...")
     await application.initialize()
     await application.start()
-    await application.updater.start_polling()
-    while True: await asyncio.sleep(1)
+    await application.updater.start_polling(drop_pending_updates=True)
+    
+    # Run until interrupted
+    stop_event = asyncio.Event()
+    await stop_event.wait()
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        pass

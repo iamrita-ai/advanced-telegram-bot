@@ -22,6 +22,7 @@ def get_network_status(speed_mb):
 class ProgressTracker:
     def __init__(self):
         self.last_update_time = 0
+        self.start_time = time.time()
 
     async def update_progress(self, message, current, total, filename):
         now = time.time()
@@ -35,9 +36,8 @@ class ProgressTracker:
         dmb = current / (1024 * 1024)
         tmb = total / (1024 * 1024)
         
-        # Simple speed estimation
-        elapsed = now - self.start_time if hasattr(self, 'start_time') else 1
-        smb = dmb / elapsed
+        elapsed = now - self.start_time
+        smb = dmb / elapsed if elapsed > 0 else 0
         eta = (total - current) / (smb * 1024 * 1024) if smb > 0 else 0
         
         bar = get_progress_bar(pct)

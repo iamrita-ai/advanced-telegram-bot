@@ -9,12 +9,23 @@ class Database:
     async def add_user(self, user_id, username):
         await self.db.users.update_one(
             {"user_id": user_id},
-            {"$set": {"username": username, "last_active": os.times()}},
+            {"$set": {"username": username}},
             upsert=True
         )
 
     async def get_all_users(self):
         return await self.db.users.find().to_list(length=None)
+
+    async def get_user_lang(self, user_id):
+        user = await self.db.users.find_one({"user_id": user_id})
+        return user.get("language", "English") if user else "English"
+
+    async def set_user_lang(self, user_id, language):
+        await self.db.users.update_one(
+            {"user_id": user_id},
+            {"$set": {"language": language}},
+            upsert=True
+        )
 
     async def ban_user(self, user_id):
         await self.db.users.update_one({"user_id": user_id}, {"$set": {"banned": True}})
