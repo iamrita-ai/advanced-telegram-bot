@@ -17,7 +17,6 @@ class UniversalDownloader:
                 total = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
                 filename = d.get('filename', 'Unknown')
                 if total > 0:
-                    # Run the async update in the event loop
                     asyncio.run_coroutine_threadsafe(
                         self.tracker.update_progress(message, current, total, filename),
                         asyncio.get_event_loop()
@@ -27,7 +26,14 @@ class UniversalDownloader:
             'format': 'best',
             'outtmpl': f'{self.download_path}/%(title)s.%(ext)s',
             'progress_hooks': [progress_hook],
+            'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None
         }
         
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            await asyncio.to_thread(ydl.download, [url])
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = await asyncio.to_thread(ydl.extract_info, url, download=True)
+                file_path = ydl.prepare_filename(info)
+                await message.reply_video(video=open(file_path, 'rb'), caption=f"✅ Downloaded: {info.get('title')}")
+                os.remove(file_path)
+        except Exception as e:
+            await message.edit_text(f"❌ Error: {str(e)}")

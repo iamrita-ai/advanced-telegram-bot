@@ -30,6 +30,16 @@ async def start_server():
     site = web.TCPSite(runner, '0.0.0.0', Config.PORT)
     await site.start()
 
+# --- Helper for Colored Buttons ---
+def create_button(text, url=None, callback_data=None, style=None):
+    # Note: style is not natively supported by python-telegram-bot yet.
+    # We pass it in a way that doesn't crash, but actual coloring depends on client support.
+    btn_dict = {"text": text}
+    if url: btn_dict["url"] = url
+    if callback_data: btn_dict["callback_data"] = callback_data
+    # We remove 'style' from the constructor call to avoid TypeError
+    return InlineKeyboardButton(**btn_dict)
+
 # --- Bot Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -47,18 +57,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Layout: Row 1 (2x2), Row 2 (Full), Row 3 (Full)
     keyboard = [
         [
-            {"text": "Report Errors 🛠", "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}", "style": "danger"},
-            {"text": "Language 🌐", "callback_data": "change_lang", "style": "primary"}
+            create_button("Report Errors 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"),
+            create_button("Language 🌐", callback_data="change_lang")
         ],
         [
-            {"text": "Owner 👑", "url": f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}", "style": "success"},
-            {"text": "Support 🛠", "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}", "style": "primary"}
+            create_button("Owner 👑", url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"),
+            create_button("Support 🛠", url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")
         ],
-        [{"text": f"👤 {user.first_name}", "url": f"tg://user?id={user.id}", "style": "primary"}],
-        [{"text": "📜 Terms of Service", "callback_data": "view_tos", "style": "primary"}]
+        [create_button(f"👤 {user.first_name}", url=f"tg://user?id={user.id}")],
+        [create_button("📜 Terms of Service", callback_data="view_tos")]
     ]
-    # Note: Using raw dict for style support in some clients, but standard InlineKeyboardButton for others
-    reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(**b) if isinstance(b, dict) else b for b in row] for row in keyboard])
+    reply_markup = InlineKeyboardMarkup(keyboard)
     
     intro = "✨ <b>Welcome to Insta Music</b> ✨\n\nI am your minimal media assistant. Use /help to explore."
     await update.message.reply_photo(photo=start_pic, caption=intro, reply_markup=reply_markup, parse_mode='HTML')
@@ -67,10 +76,7 @@ async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = " ".join(context.args)
     if not url: return await update.message.reply_text("Usage: /dl <url>")
     msg = await update.message.reply_text("⏳ Processing your link...")
-    try:
-        await universal_dl.download(url, msg)
-    except Exception as e:
-        await msg.edit_text(f"❌ Error: {str(e)}")
+    await universal_dl.download(url, msg)
 
 async def profile_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = " ".join(context.args)
@@ -82,6 +88,7 @@ async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.message.text.replace("#music", "").strip() if "#music" in update.message.text else " ".join(context.args)
     if not query: return await update.message.reply_text("Usage: #music <song name>")
     await update.message.reply_text(f"🎵 Searching for: <b>{query}</b>...", parse_mode='HTML')
+    # Implement actual music search logic here
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = (
