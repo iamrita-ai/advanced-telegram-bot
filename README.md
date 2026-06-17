@@ -1,19 +1,15 @@
 <div align="center">
 
-# 🌟 Advanced Multi-Media Downloader 🌟
-### ✨ Professional Telegram Bot by Technical Serena ✨
+# 🌟 Insta Music: Advanced Media Downloader 🌟
+### ✨ A Professional Telegram Bot Solution by Technical Serena ✨
 
 ![GitHub License](https://img.shields.io/github/license/iamrita-ai/advanced-telegram-bot?style=for-the-badge&color=blue)
-![GitHub Stars](https://img.shields.io/github/stars/iamrita-ai/advanced-telegram-bot?style=for-the-badge&color=gold)
 ![Python Version](https://img.shields.io/badge/python-3.11-blue?style=for-the-badge&logo=python)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
-![VPS Deployment](https://img.shields.io/badge/VPS-Compatible-green?style=for-the-badge&logo=linux)
-
-<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif" width="500">
 
 ---
 
-**A premium, high-performance Telegram Bot for Instagram, Music, and Universal Media Downloading.**
+**Download Instagram Reels, Stories, High-Quality Music, and Universal Media with Ease.**
 
 [Owner 👑](https://t.me/TechnicalSerena) | [Developer 💻](https://t.me/Xioqui_Xin) | [Support 🛠](https://t.me/TechnicalSerena)
 
@@ -21,78 +17,38 @@
 
 ---
 
-## 🛠 Features & Capabilities
+## 🚀 Key Features
 
 ### 📸 Instagram Suite
-- **Full Profile:** Download all posts, stories, and highlights.
-- **HD Media:** High-definition Photos, Reels, and Carousel posts.
-- **AI Captions:** Generate viral captions using Groq AI.
+- **Profiles:** Download full metadata and posts using `/profile`.
+- **Reels & Stories:** High-speed downloads powered by `yt-dlp`.
+- **Private Content:** Support for Netscape cookies via `/cookies`.
 
 ### 🎵 Music Engine
-- **Search:** Use `#music <name>` in any chat or group.
-- **High Quality:** 320kbps MP3 with embedded cover art and metadata.
-- **Direct Play:** Seamless integration with Telegram's music player.
+- **Global Search:** Use `#music <name>` or `/music <name>`.
+- **High Fidelity:** 192kbps MP3s with embedded thumbnails and metadata.
+- **Bot Bypass:** Advanced cookie support to avoid YouTube bot detection.
 
 ### 🎥 Universal Downloader
-- **Supported Platforms:** YouTube, TikTok, Facebook, X, Reddit, Pinterest.
-- **Batch Processing:** Download multiple links at once.
-- **Smart Rename:** Auto-renaming flow for organized libraries.
+- **Multi-Platform:** Support for YouTube, TikTok, Facebook, X, and more.
+- **Progress Tracking:** Real-time ETA, Speed, and Progress bars with 3s delay.
 
 ---
 
-## 📋 Commands Structure
+## 🛠 Deployment Guide
 
-| Command | Usage | Description |
-| :--- | :--- | :--- |
-| `/start` | `/start` | Initialize bot & check status |
-| `/help` | `/help` | Detailed guide for all features |
-| `/profile` | `/profile <username>` | Download full Insta profile |
-| `#music` | `#music <song name>` | Fetch & play music in groups |
-| `/dl` | `/dl <url>` | Universal link downloader |
-| `/admin` | `/admin` | Admin control panel (Owners) |
-| `/lock` | `/lock` | Restrict bot access |
-| `/cookies` | `/cookies <data>` | Set Instagram session cookies |
-
----
-
-## 🚀 Deployment Guide
-
-### 🌐 VPS Deployment (Recommended)
-1. **Update System:**
-   ```bash
-   sudo apt update && sudo apt upgrade -y
-   ```
-2. **Install Dependencies:**
-   ```bash
-   sudo apt install python3-pip ffmpeg git -y
-   ```
-3. **Clone & Setup:**
+### 🌐 VPS Setup
+1. **Clone & Install:**
    ```bash
    git clone https://github.com/iamrita-ai/advanced-telegram-bot.git
    cd advanced-telegram-bot
    pip install -r requirements.txt
    ```
-4. **Configure Environment:**
-   ```bash
-   cp .env.example .env
-   nano .env
-   ```
-5. **Run with Screen (Persistent):**
-   ```bash
-   screen -S bot
-   python3 main.py
-   ```
+2. **Configure:** Edit `.env` with your `BOT_TOKEN`, `OWNER_IDS`, and `MONGODB_URI`.
+3. **Run:** `python3 main.py`
 
-### 🐳 Docker Deployment
-```bash
-docker build -t advanced-bot .
-docker run -d --name mybot --env-file .env advanced-bot
-```
-
-### ☁️ Render Deployment
-- Simply connect this repo to Render.
-- Add your Environment Variables.
-- The bot includes a built-in health check server on port `8080`.
+### 🐳 Docker & Render
+- The bot is **Docker-ready** and includes a built-in health check server for **Render** on port `8080`.
 
 ---
 
@@ -102,5 +58,5 @@ docker run -d --name mybot --env-file .env advanced-bot
 - **License:** [MIT License](LICENSE)
 
 <div align="center">
-  <b>Built with ❤️ for the Global Community</b>
+  <b>Minimalist UI • High Performance • Community Driven</b>
 </div>

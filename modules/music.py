@@ -24,6 +24,10 @@ class MusicDownloader:
             'writethumbnail': True,
             'default_search': 'ytsearch1',
             'noplaylist': True,
+            # Use cookies if available to bypass bot detection
+            'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
+            'quiet': True,
+            'no_warnings': True,
         }
         
         try:
@@ -33,7 +37,6 @@ class MusicDownloader:
                     info = info['entries'][0]
                 
                 # Finding the generated mp3 file
-                title = info.get('title')
                 file_path = None
                 for f in os.listdir(self.download_path):
                     if f.endswith(".mp3"):
@@ -49,10 +52,10 @@ class MusicDownloader:
                         parse_mode='HTML'
                     )
                     os.remove(file_path)
-                    # Clean up thumbnails if any
+                    # Clean up thumbnails
                     for f in os.listdir(self.download_path):
                         os.remove(os.path.join(self.download_path, f))
                 else:
-                    await message.edit_text("❌ Failed to process the audio file.")
+                    await message.edit_text("❌ Failed to process the audio file. Try using cookies.")
         except Exception as e:
-            await message.edit_text(f"❌ Music Error: {str(e)}")
+            await message.edit_text(f"❌ Music Error: {str(e)}\n\n💡 <i>Try uploading your cookies.txt using /cookies</i>", parse_mode='HTML')
