@@ -33,7 +33,50 @@ LANG_DATA = {
         "help_text": "🗺 <b>Mind Map</b>\n\n📸 <b>Insta:</b> /profile [user]\n🎵 <b>Music:</b> #music [name]\n🎥 <b>DL:</b> /dl [url]",
         "tos_full": "📜 <b>Terms of Service & Privacy Policy</b>\n\n<b>1. Data Collection:</b> We collect minimal data such as your Telegram User ID and Username to provide personalized services and language preferences. We do not sell or share this data with third parties.\n\n<b>2. Media Processing:</b> Our bot acts as a gateway to download media from public platforms. We do not store the downloaded files on our servers after they are delivered to you. All temporary files are deleted immediately.\n\n<b>3. User Responsibility:</b> You are solely responsible for the content you download. Please respect the copyright and intellectual property rights of content creators. This bot is intended for personal use only.\n\n<b>4. Cookies Usage:</b> If you provide session cookies via /cookies, they are stored securely and used only to authenticate your requests on platforms like Instagram. You can update or delete them at any time.\n\n<b>5. Service Availability:</b> We strive for 100% uptime, but service may be interrupted for maintenance or due to platform changes. By using this bot, you agree to these terms."
     },
-    # (Other languages would be expanded similarly)
+    "Hindi": {
+        "welcome": "✨ <b>Insta Music में आपका स्वागत है</b> ✨\n\nमैं आपका मीडिया सहायक हूँ।",
+        "help_btn": "सुविधाओं के लिए /help का उपयोग करें।",
+        "report": "त्रुटि रिपोर्ट 🛠",
+        "lang": "भाषा 🌐",
+        "owner": "मालिक 👑",
+        "support": "सहायता 🛠",
+        "tos": "📜 सेवा की शर्तें",
+        "help_text": "🗺 <b>माइंड मैप</b>\n\n📸 <b>इंस्टा:</b> /profile [user]\n🎵 <b>संगीत:</b> #music [name]\n🎥 <b>डाउनलोड:</b> /dl [url]",
+        "tos_full": "📜 <b>सेवा की शर्तें और गोपनीयता नीति</b>\n\n1. डेटा संग्रह: हम आपकी भाषा प्राथमिकताओं के लिए आपका टेलीग्राम यूजर आईडी और यूजरनेम एकत्र करते हैं।\n2. मीडिया प्रोसेसिंग: हम डाउनलोड किए गए मीडिया को स्टोर नहीं करते हैं।\n3. उपयोगकर्ता की जिम्मेदारी: आप डाउनलोड की गई सामग्री के लिए स्वयं जिम्मेदार हैं।"
+    },
+    "French": {
+        "welcome": "✨ <b>Bienvenue sur Insta Music</b> ✨\n\nJe suis votre assistant média.",
+        "help_btn": "Utilisez /help pour explorer.",
+        "report": "Signaler Erreurs 🛠",
+        "lang": "Langue 🌐",
+        "owner": "Propriétaire 👑",
+        "support": "Support 🛠",
+        "tos": "📜 Conditions de Service",
+        "help_text": "🗺 <b>Carte Mentale</b>\n\n📸 <b>Insta:</b> /profile [user]\n🎵 <b>Musique:</b> #music [name]\n🎥 <b>DL:</b> /dl [url]",
+        "tos_full": "📜 <b>Conditions de service et politique de confidentialité</b>\n\n1. Collecte de données: Nous collectons votre ID Telegram pour vos préférences.\n2. Traitement des médias: Nous ne stockons pas les fichiers téléchargés.\n3. Responsabilité de l'utilisateur: Vous êtes responsable du contenu téléchargé."
+    },
+    "Korean": {
+        "welcome": "✨ <b>인스타 뮤직에 오신 것을 환영합니다</b> ✨\n\n저는 당신의 미디어 도우미입니다.",
+        "help_btn": "/help를 사용하여 기능을 탐색하십시오.",
+        "report": "오류 보고 🛠",
+        "lang": "언어 🌐",
+        "owner": "소유자 👑",
+        "support": "지원 🛠",
+        "tos": "📜 서비스 약관",
+        "help_text": "🗺 <b>마인드 맵</b>\n\n📸 <b>인스타:</b> /profile [user]\n🎵 <b>음악:</b> #music [name]\n🎥 <b>다운로드:</b> /dl [url]",
+        "tos_full": "📜 <b>서비스 약관 및 개인정보 보호정책</b>\n\n1. 데이터 수집: 언어 설정을 위해 텔레그램 ID를 수집합니다.\n2. 미디어 처리: 다운로드된 파일을 저장하지 않습니다.\n3. 사용자 책임: 다운로드한 콘텐츠에 대한 책임은 사용자에게 있습니다."
+    },
+    "Russian": {
+        "welcome": "✨ <b>Добро пожаловать в Insta Music</b> ✨\n\nЯ ваш медиа-помощник.",
+        "help_btn": "Используйте /help для изучения.",
+        "report": "Сообщить об ошибке 🛠",
+        "lang": "Язык 🌐",
+        "owner": "Владелец 👑",
+        "support": "Поддержка 🛠",
+        "tos": "📜 Условия использования",
+        "help_text": "🗺 <b>Карта мыслей</b>\n\n📸 <b>Инста:</b> /profile [user]\n🎵 <b>Музыка:</b> #music [name]\n🎥 <b>Загрузка:</b> /dl [url]",
+        "tos_full": "📜 <b>Условия использования и политика конфиденциальности</b>\n\n1. Сбор данных: Мы собираем ваш Telegram ID для настроек языка.\n2. Обработка медиа: Мы не храним загруженные файлы.\n3. Ответственность пользователя: Вы несете ответственность за загруженный контент."
+    }
 }
 
 # --- Health Check Server ---
@@ -90,6 +133,18 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
         new_lang = query.data.split("_")[1]
         await db.set_user_lang(user_id, new_lang)
         await query.message.edit_text(f"✅ Language changed to: <b>{new_lang}</b>", parse_mode='HTML')
+
+async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    url = " ".join(context.args)
+    if not url: return await update.message.reply_text("Usage: /dl <url>")
+    msg = await update.message.reply_text("⏳ Processing your link...")
+    await universal_dl.download(url, msg)
+
+async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.message.text.replace("#music", "").strip() if "#music" in update.message.text else " ".join(context.args)
+    if not query: return await update.message.reply_text("Usage: #music <song name>")
+    msg = await update.message.reply_text(f"🎵 Searching for: <b>{query}</b>...", parse_mode='HTML')
+    await music_dl.search_and_download(query, msg)
 
 async def cookies_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in Config.OWNER_IDS: return
