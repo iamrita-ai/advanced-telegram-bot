@@ -55,13 +55,12 @@ class UniversalDownloader:
                             break
 
                 if os.path.exists(file_path):
-                    # Extract metadata
                     duration = info.get('duration')
                     width = info.get('width')
                     height = info.get('height')
                     thumb_url = info.get('thumbnail')
                     
-                    thumb_path = None
+                    thumb_file = None
                     if thumb_url:
                         try:
                             thumb_path = f"{file_path}_thumb.jpg"
@@ -69,24 +68,26 @@ class UniversalDownloader:
                             if r.status_code == 200:
                                 with open(thumb_path, 'wb') as f:
                                     for chunk in r: f.write(chunk)
+                                thumb_file = open(thumb_path, 'rb')
                         except:
-                            thumb_path = None
+                            thumb_file = None
 
+                    # Use 'thumbnail' instead of 'thumb' for python-telegram-bot v20+
                     await message.reply_video(
                         video=open(file_path, 'rb'),
                         caption=f"✅ <b>{info.get('title')}</b>",
                         duration=duration,
                         width=width,
                         height=height,
-                        thumb=open(thumb_path, 'rb') if thumb_path else None,
+                        thumbnail=thumb_file,
                         supports_streaming=True,
                         parse_mode='HTML'
                     )
                     
-                    # Cleanup
+                    if thumb_file:
+                        thumb_file.close()
+                        if os.path.exists(thumb_path): os.remove(thumb_path)
                     os.remove(file_path)
-                    if thumb_path and os.path.exists(thumb_path):
-                        os.remove(thumb_path)
                 else:
                     await message.edit_text("❌ Error: Media file not found.")
         except Exception as e:

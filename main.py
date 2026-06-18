@@ -1,6 +1,7 @@
 import os
 import logging
 import asyncio
+import random
 from aiohttp import web
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
@@ -20,6 +21,13 @@ universal_dl = UniversalDownloader()
 insta_dl = InstagramDownloader()
 music_dl = MusicDownloader()
 
+# --- Reactions Data (60+ Emojis) ---
+EMOJIS = [
+    "🔥", "⚡", "✨", "🌟", "❤️", "🎉", "🚀", "🤖", "😎", "💎", "🎯", "🌈", "🎬", "🎵", "📸", "✅", "👑", "💡", "🛡️", "🤝",
+    "🔥", "🤩", "🥳", "🤯", "🥰", "😍", "😋", "😜", "😇", "🤔", "🤫", "🫡", "🤝", "💪", "🙌", "👏", "🤜", "🤛", "✌️", "🤟",
+    "🎸", "🎹", "🎺", "🎻", "🎧", "🎤", "🎬", "🎥", "🎞️", "🍿", "📺", "🎮", "🕹️", "📱", "💻", "🛰️", "🛸", "🌍", "🌕", "🌞"
+]
+
 # --- Multi-Language Data ---
 LANG_DATA = {
     "English": {
@@ -30,15 +38,15 @@ LANG_DATA = {
         "owner": "Owner 👑",
         "support": "Support 🛠",
         "tos": "📜 Terms of Service",
-        "help_text": "🗺 <b>Mind Map</b>\n\n📸 <b>Insta:</b> /profile [user]\n🎵 <b>Music:</b> #music [name]\n🎥 <b>DL:</b> /dl [url]",
         "processing": "⏳ Processing your link...",
         "searching": "🎵 Searching for: <b>{}</b>...",
-        "eta": "⏳ ETA",
-        "speed": "🚀 Speed",
-        "done": "✅ Done",
-        "progress": "◌ Progress 😉",
-        "network": "📶 Network",
-        "downloading": "⬇️ Downloading from server..."
+        "downloading": "⬇️ Downloading from server...",
+        "done": "Done",
+        "progress": "Progress",
+        "speed": "Speed",
+        "eta": "ETA",
+        "network": "Network",
+        "tos_full": "📜 <b>Terms of Service</b>\n\n1. Privacy: We don't store your data.\n2. Usage: Bot is for personal use only.\n3. Content: You are responsible for what you download."
     },
     "Hindi": {
         "welcome": "✨ <b>Insta Music में आपका स्वागत है</b> ✨\n\nमैं आपका मीडिया सहायक हूँ।",
@@ -48,69 +56,15 @@ LANG_DATA = {
         "owner": "मालिक 👑",
         "support": "सहायता 🛠",
         "tos": "📜 सेवा की शर्तें",
-        "help_text": "🗺 <b>माइंड मैप</b>\n\n📸 <b>इंस्टा:</b> /profile [user]\n🎵 <b>संगीत:</b> #music [name]\n🎥 <b>डाउनलोड:</b> /dl [url]",
         "processing": "⏳ आपकी लिंक प्रोसेस हो रही है...",
         "searching": "🎵 खोजा जा रहा है: <b>{}</b>...",
-        "eta": "⏳ समय",
-        "speed": "🚀 गति",
-        "done": "✅ पूर्ण",
-        "progress": "◌ प्रगति 😉",
-        "network": "📶 नेटवर्क",
-        "downloading": "⬇️ सर्वर से डाउनलोड हो रहा है..."
-    },
-    "French": {
-        "welcome": "✨ <b>Bienvenue sur Insta Music</b> ✨\n\nJe suis votre assistant média.",
-        "help_btn": "Utilisez /help pour explorer.",
-        "report": "Signaler Erreurs 🛠",
-        "lang": "Langue 🌐",
-        "owner": "Propriétaire 👑",
-        "support": "Support 🛠",
-        "tos": "📜 Conditions de Service",
-        "help_text": "🗺 <b>Carte Mentale</b>\n\n📸 <b>Insta:</b> /profile [user]\n🎵 <b>Musique:</b> #music [name]\n🎥 <b>DL:</b> /dl [url]",
-        "processing": "⏳ Traitement de votre lien...",
-        "searching": "🎵 Recherche de: <b>{}</b>...",
-        "eta": "⏳ Temps",
-        "speed": "🚀 Vitesse",
-        "done": "✅ Terminé",
-        "progress": "◌ Progrès 😉",
-        "network": "📶 Réseau",
-        "downloading": "⬇️ Téléchargement depuis le serveur..."
-    },
-    "Korean": {
-        "welcome": "✨ <b>인스타 뮤직에 오신 것을 환영합니다</b> ✨\n\n저는 당신의 미디어 도우미입니다.",
-        "help_btn": "/help를 사용하여 기능을 탐색하십시오.",
-        "report": "오류 보고 🛠",
-        "lang": "언어 🌐",
-        "owner": "소유자 👑",
-        "support": "지원 🛠",
-        "tos": "📜 서비스 약관",
-        "help_text": "🗺 <b>마인드 맵</b>\n\n📸 <b>인스타:</b> /profile [user]\n🎵 <b>음악:</b> #music [name]\n🎥 <b>다운로드:</b> /dl [url]",
-        "processing": "⏳ 링크 처리 중...",
-        "searching": "🎵 검색 중: <b>{}</b>...",
-        "eta": "⏳ 남은 시간",
-        "speed": "🚀 속도",
-        "done": "✅ 완료",
-        "progress": "◌ 진행 상황 😉",
-        "network": "📶 네트워크",
-        "downloading": "⬇️ 서버에서 다운로드 중..."
-    },
-    "Russian": {
-        "welcome": "✨ <b>Добро пожаловать в Insta Music</b> ✨\n\nЯ ваш медиа-помощник.",
-        "help_btn": "Используйте /help для изучения.",
-        "report": "Сообщить об ошибке 🛠",
-        "lang": "Язык 🌐",
-        "owner": "Владелец 👑",
-        "support": "Поддержка 🛠",
-        "tos": "📜 Условия использования",
-        "help_text": "🗺 <b>Карта мыслей</b>\n\n📸 <b>Инста:</b> /profile [user]\n🎵 <b>Музыка:</b> #music [name]\n🎥 <b>Загрузка:</b> /dl [url]",
-        "processing": "⏳ Обработка вашей ссылки...",
-        "searching": "🎵 Поиск: <b>{}</b>...",
-        "eta": "⏳ Время",
-        "speed": "🚀 Скорость",
-        "done": "✅ Готово",
-        "progress": "◌ Прогресс 😉",
-        "network": "📶 Сеть",
-        "downloading": "⬇️ Загрузка с сервера..."
+        "downloading": "⬇️ सर्वर से डाउनलोड हो रहा है...",
+        "done": "पूर्ण",
+        "progress": "प्रगति",
+        "speed": "गति",
+        "eta": "समय",
+        "network": "नेटवर्क",
+        "tos_full": "📜 <b>सेवा की शर्तें</b>\n\n1. गोपनीयता: हम आपका डेटा स्टोर नहीं करते हैं।\n2. उपयोग: बॉट केवल व्यक्तिगत उपयोग के लिए है।\n3. सामग्री: आप जो डाउनलोड करते हैं उसके लिए आप जिम्मेदार हैं।"
     }
 }
 
@@ -126,34 +80,57 @@ async def start_server():
     site = web.TCPSite(runner, '0.0.0.0', Config.PORT)
     await site.start()
 
+# --- Colored Button Helper ---
+def colored_button(text, url=None, callback_data=None, style="primary"):
+    # Telegram Bot API supports 'style' parameter for buttons in some clients/libraries
+    # We pass it as a raw dictionary to ensure it reaches the API
+    btn = {"text": text}
+    if url: btn["url"] = url
+    if callback_data: btn["callback_data"] = callback_data
+    btn["style"] = style
+    return btn
+
 # --- Bot Handlers ---
+async def send_reaction(update: Update, emoji=None):
+    try:
+        if not emoji:
+            emoji = random.choice(EMOJIS)
+        # set_reaction is available in PTB v20+
+        await update.message.set_reaction(reaction=emoji)
+    except Exception as e:
+        logger.error(f"Reaction error: {e}")
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_lang = await db.get_user_lang(user.id)
     texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
     
     if not await check_force_sub(context.bot, user.id):
+        await send_reaction(update, "💩")
         join_btn = InlineKeyboardMarkup([[InlineKeyboardButton("Join Channel", url=f"https://t.me/{Config.FORCE_SUB_CHANNEL[1:]}")]])
         return await update.message.reply_text(f"❌ Access Denied!\n\nPlease join {Config.FORCE_SUB_CHANNEL} to use me.", reply_markup=join_btn)
 
+    await send_reaction(update)
     start_pic = Config.START_PIC
     if not start_pic:
         photos = await context.bot.get_user_profile_photos(user.id, limit=1)
         start_pic = photos.photos[0][-1].file_id if photos.total_count > 0 else "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
 
-    # Using standard buttons for maximum compatibility while maintaining aesthetic
+    # Using colored buttons logic
     keyboard = [
         [
-            InlineKeyboardButton(texts["report"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"),
-            InlineKeyboardButton(texts["lang"], callback_data="change_lang")
+            colored_button(texts["report"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}", style="danger"),
+            colored_button(texts["lang"], callback_data="change_lang", style="primary")
         ],
         [
-            InlineKeyboardButton(texts["owner"], url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"),
-            InlineKeyboardButton(texts["support"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")
+            colored_button(texts["owner"], url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}", style="success"),
+            colored_button(texts["support"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}", style="primary")
         ],
-        [InlineKeyboardButton(f"👤 {user.first_name}", url=f"tg://user?id={user.id}")],
-        [InlineKeyboardButton(texts["tos"], callback_data="view_tos")]
+        [colored_button(f"👤 {user.first_name}", url=f"tg://user?id={user.id}", style="primary")],
+        [colored_button(texts["tos"], callback_data="view_tos", style="danger")]
     ]
+    
+    # PTB's InlineKeyboardMarkup accepts lists of lists of dictionaries or InlineKeyboardButton objects
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     intro = f"{texts['welcome']}\n\n{texts['help_btn']}"
@@ -167,10 +144,9 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
     await query.answer()
     
     if query.data == "view_tos":
-        tos_full = "📜 <b>Terms of Service & Privacy Policy</b>\n\n1. Data Collection: We collect minimal data for preferences.\n2. Media Processing: Files are deleted after delivery.\n3. Responsibility: You are responsible for content downloaded."
-        await query.message.reply_text(tos_full, parse_mode='HTML')
+        await query.message.reply_text(texts["tos_full"], parse_mode='HTML')
     elif query.data == "change_lang":
-        buttons = [[InlineKeyboardButton(lang, callback_data=f"setlang_{lang}")] for lang in ["English", "Hindi", "French", "Korean", "Russian"]]
+        buttons = [[colored_button(lang, callback_data=f"setlang_{lang}", style="success")] for lang in ["English", "Hindi", "French", "Korean", "Russian"]]
         await query.message.reply_text(f"🌐 <b>{texts['lang']}</b>", reply_markup=InlineKeyboardMarkup(buttons), parse_mode='HTML')
     elif query.data.startswith("setlang_"):
         new_lang = query.data.split("_")[1]
@@ -178,6 +154,7 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
         await query.message.edit_text(f"✅ Language changed to: <b>{new_lang}</b>", parse_mode='HTML')
 
 async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_reaction(update)
     user_lang = await db.get_user_lang(update.effective_user.id)
     texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
     url = " ".join(context.args)
@@ -186,6 +163,7 @@ async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await universal_dl.download(url, msg, texts)
 
 async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_reaction(update)
     user_lang = await db.get_user_lang(update.effective_user.id)
     texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
     query = update.message.text.replace("#music", "").strip() if "#music" in update.message.text else " ".join(context.args)
