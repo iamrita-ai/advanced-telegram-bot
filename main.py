@@ -31,7 +31,14 @@ LANG_DATA = {
         "support": "Support 🛠",
         "tos": "📜 Terms of Service",
         "help_text": "🗺 <b>Mind Map</b>\n\n📸 <b>Insta:</b> /profile [user]\n🎵 <b>Music:</b> #music [name]\n🎥 <b>DL:</b> /dl [url]",
-        "tos_full": "📜 <b>Terms of Service & Privacy Policy</b>\n\n<b>1. Data Collection:</b> We collect minimal data such as your Telegram User ID and Username to provide personalized services and language preferences. We do not sell or share this data with third parties.\n\n<b>2. Media Processing:</b> Our bot acts as a gateway to download media from public platforms. We do not store the downloaded files on our servers after they are delivered to you. All temporary files are deleted immediately.\n\n<b>3. User Responsibility:</b> You are solely responsible for the content you download. Please respect the copyright and intellectual property rights of content creators. This bot is intended for personal use only.\n\n<b>4. Cookies Usage:</b> If you provide session cookies via /cookies, they are stored securely and used only to authenticate your requests on platforms like Instagram. You can update or delete them at any time.\n\n<b>5. Service Availability:</b> We strive for 100% uptime, but service may be interrupted for maintenance or due to platform changes. By using this bot, you agree to these terms."
+        "processing": "⏳ Processing your link...",
+        "searching": "🎵 Searching for: <b>{}</b>...",
+        "eta": "⏳ ETA",
+        "speed": "🚀 Speed",
+        "done": "✅ Done",
+        "progress": "◌ Progress 😉",
+        "network": "📶 Network",
+        "downloading": "⬇️ Downloading from server..."
     },
     "Hindi": {
         "welcome": "✨ <b>Insta Music में आपका स्वागत है</b> ✨\n\nमैं आपका मीडिया सहायक हूँ।",
@@ -42,7 +49,14 @@ LANG_DATA = {
         "support": "सहायता 🛠",
         "tos": "📜 सेवा की शर्तें",
         "help_text": "🗺 <b>माइंड मैप</b>\n\n📸 <b>इंस्टा:</b> /profile [user]\n🎵 <b>संगीत:</b> #music [name]\n🎥 <b>डाउनलोड:</b> /dl [url]",
-        "tos_full": "📜 <b>सेवा की शर्तें और गोपनीयता नीति</b>\n\n1. डेटा संग्रह: हम आपकी भाषा प्राथमिकताओं के लिए आपका टेलीग्राम यूजर आईडी और यूजरनेम एकत्र करते हैं।\n2. मीडिया प्रोसेसिंग: हम डाउनलोड किए गए मीडिया को स्टोर नहीं करते हैं।\n3. उपयोगकर्ता की जिम्मेदारी: आप डाउनलोड की गई सामग्री के लिए स्वयं जिम्मेदार हैं।"
+        "processing": "⏳ आपकी लिंक प्रोसेस हो रही है...",
+        "searching": "🎵 खोजा जा रहा है: <b>{}</b>...",
+        "eta": "⏳ समय",
+        "speed": "🚀 गति",
+        "done": "✅ पूर्ण",
+        "progress": "◌ प्रगति 😉",
+        "network": "📶 नेटवर्क",
+        "downloading": "⬇️ सर्वर से डाउनलोड हो रहा है..."
     },
     "French": {
         "welcome": "✨ <b>Bienvenue sur Insta Music</b> ✨\n\nJe suis votre assistant média.",
@@ -53,7 +67,14 @@ LANG_DATA = {
         "support": "Support 🛠",
         "tos": "📜 Conditions de Service",
         "help_text": "🗺 <b>Carte Mentale</b>\n\n📸 <b>Insta:</b> /profile [user]\n🎵 <b>Musique:</b> #music [name]\n🎥 <b>DL:</b> /dl [url]",
-        "tos_full": "📜 <b>Conditions de service et politique de confidentialité</b>\n\n1. Collecte de données: Nous collectons votre ID Telegram pour vos préférences.\n2. Traitement des médias: Nous ne stockons pas les fichiers téléchargés.\n3. Responsabilité de l'utilisateur: Vous êtes responsable du contenu téléchargé."
+        "processing": "⏳ Traitement de votre lien...",
+        "searching": "🎵 Recherche de: <b>{}</b>...",
+        "eta": "⏳ Temps",
+        "speed": "🚀 Vitesse",
+        "done": "✅ Terminé",
+        "progress": "◌ Progrès 😉",
+        "network": "📶 Réseau",
+        "downloading": "⬇️ Téléchargement depuis le serveur..."
     },
     "Korean": {
         "welcome": "✨ <b>인스타 뮤직에 오신 것을 환영합니다</b> ✨\n\n저는 당신의 미디어 도우미입니다.",
@@ -64,7 +85,14 @@ LANG_DATA = {
         "support": "지원 🛠",
         "tos": "📜 서비스 약관",
         "help_text": "🗺 <b>마인드 맵</b>\n\n📸 <b>인스타:</b> /profile [user]\n🎵 <b>음악:</b> #music [name]\n🎥 <b>다운로드:</b> /dl [url]",
-        "tos_full": "📜 <b>서비스 약관 및 개인정보 보호정책</b>\n\n1. 데이터 수집: 언어 설정을 위해 텔레그램 ID를 수집합니다.\n2. 미디어 처리: 다운로드된 파일을 저장하지 않습니다.\n3. 사용자 책임: 다운로드한 콘텐츠에 대한 책임은 사용자에게 있습니다."
+        "processing": "⏳ 링크 처리 중...",
+        "searching": "🎵 검색 중: <b>{}</b>...",
+        "eta": "⏳ 남은 시간",
+        "speed": "🚀 속도",
+        "done": "✅ 완료",
+        "progress": "◌ 진행 상황 😉",
+        "network": "📶 네트워크",
+        "downloading": "⬇️ 서버에서 다운로드 중..."
     },
     "Russian": {
         "welcome": "✨ <b>Добро пожаловать в Insta Music</b> ✨\n\nЯ ваш медиа-помощник.",
@@ -75,7 +103,14 @@ LANG_DATA = {
         "support": "Поддержка 🛠",
         "tos": "📜 Условия использования",
         "help_text": "🗺 <b>Карта мыслей</b>\n\n📸 <b>Инста:</b> /profile [user]\n🎵 <b>Музыка:</b> #music [name]\n🎥 <b>Загрузка:</b> /dl [url]",
-        "tos_full": "📜 <b>Условия использования и политика конфиденциальности</b>\n\n1. Сбор данных: Мы собираем ваш Telegram ID для настроек языка.\n2. Обработка медиа: Мы не храним загруженные файлы.\n3. Ответственность пользователя: Вы несете ответственность за загруженный контент."
+        "processing": "⏳ Обработка вашей ссылки...",
+        "searching": "🎵 Поиск: <b>{}</b>...",
+        "eta": "⏳ Время",
+        "speed": "🚀 Скорость",
+        "done": "✅ Готово",
+        "progress": "◌ Прогресс 😉",
+        "network": "📶 Сеть",
+        "downloading": "⬇️ Загрузка с сервера..."
     }
 }
 
@@ -90,6 +125,17 @@ async def start_server():
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', Config.PORT)
     await site.start()
+
+# --- Colored Button Helper ---
+def create_colored_button(text, url=None, callback_data=None, color="primary"):
+    # Telegram Bot API 9.4+ button styling via style parameter
+    # Note: Using raw dict to ensure compatibility with libraries that don't support it yet
+    btn = {"text": text}
+    if url: btn["url"] = url
+    if callback_data: btn["callback_data"] = callback_data
+    # style can be: primary (blue), success (green), danger (red)
+    btn["style"] = color
+    return btn
 
 # --- Bot Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -107,8 +153,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         start_pic = photos.photos[0][-1].file_id if photos.total_count > 0 else "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
 
     keyboard = [
-        [InlineKeyboardButton(texts["report"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"), InlineKeyboardButton(texts["lang"], callback_data="change_lang")],
-        [InlineKeyboardButton(texts["owner"], url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"), InlineKeyboardButton(texts["support"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")],
+        [
+            InlineKeyboardButton(texts["report"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"),
+            InlineKeyboardButton(texts["lang"], callback_data="change_lang")
+        ],
+        [
+            InlineKeyboardButton(texts["owner"], url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"),
+            InlineKeyboardButton(texts["support"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")
+        ],
         [InlineKeyboardButton(f"👤 {user.first_name}", url=f"tg://user?id={user.id}")],
         [InlineKeyboardButton(texts["tos"], callback_data="view_tos")]
     ]
@@ -125,25 +177,30 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
     await query.answer()
     
     if query.data == "view_tos":
-        await query.message.reply_text(texts["tos_full"], parse_mode='HTML')
+        await query.message.reply_text(texts.get("tos_full", texts["tos"]), parse_mode='HTML')
     elif query.data == "change_lang":
+        # Success (Green) style for languages
         buttons = [[InlineKeyboardButton(lang, callback_data=f"setlang_{lang}")] for lang in ["English", "Hindi", "French", "Korean", "Russian"]]
-        await query.message.reply_text("🌐 <b>Select Language:</b>", reply_markup=InlineKeyboardMarkup(buttons), parse_mode='HTML')
+        await query.message.reply_text(f"🌐 <b>{texts['lang']}</b>", reply_markup=InlineKeyboardMarkup(buttons), parse_mode='HTML')
     elif query.data.startswith("setlang_"):
         new_lang = query.data.split("_")[1]
         await db.set_user_lang(user_id, new_lang)
         await query.message.edit_text(f"✅ Language changed to: <b>{new_lang}</b>", parse_mode='HTML')
 
 async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_lang = await db.get_user_lang(update.effective_user.id)
+    texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
     url = " ".join(context.args)
     if not url: return await update.message.reply_text("Usage: /dl <url>")
-    msg = await update.message.reply_text("⏳ Processing your link...")
-    await universal_dl.download(url, msg)
+    msg = await update.message.reply_text(texts["processing"])
+    await universal_dl.download(url, msg, texts)
 
 async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_lang = await db.get_user_lang(update.effective_user.id)
+    texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
     query = update.message.text.replace("#music", "").strip() if "#music" in update.message.text else " ".join(context.args)
     if not query: return await update.message.reply_text("Usage: #music <song name>")
-    msg = await update.message.reply_text(f"🎵 Searching for: <b>{query}</b>...", parse_mode='HTML')
+    msg = await update.message.reply_text(texts["searching"].format(query), parse_mode='HTML')
     await music_dl.search_and_download(query, msg)
 
 async def cookies_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):

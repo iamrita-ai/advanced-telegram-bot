@@ -23,12 +23,12 @@ class ProgressTracker:
         self.last_update_time = 0
         self.start_time = time.time()
 
-    async def update_progress(self, message, current, total, filename, is_done=False):
+    async def update_progress(self, message, current, total, filename, texts, is_done=False):
         now = time.time()
         
         # Final update when done
         if is_done:
-            text = f"✅ <b>Download Complete!</b>\n📄 <code>{filename[:35]}</code>"
+            text = f"✅ <b>{texts['done']}!</b>\n📄 <code>{filename[:35]}</code>"
             try:
                 await message.edit_text(text, parse_mode='HTML')
             except:
@@ -57,13 +57,13 @@ class ProgressTracker:
         
         text = (
             f"📄 <code>{filename[:35]}</code>\n"
-            f"<b>⬇️ Downloading from server...</b>\n\n"
+            f"<b>{texts['downloading']}</b>\n\n"
             f"<code>[{bar}]</code>\n"
-            f"◌ <b>Progress</b> 😉 : 〘 {pct}% 〙\n"
-            f"✅ <b>Done</b>        : 〘 {dmb:.2f} MB of {tmb:.2f} MB 〙\n"
-            f"🚀 <b>Speed</b>       : 〘 {smb:.2f} MB/s 〙\n"
-            f"⏳ <b>ETA</b>         : 〘 {eta_fmt} 〙\n"
-            f"📶 <b>Network</b>     : {net}"
+            f"◌ <b>{texts['progress']}</b> : 〘 {pct}% 〙\n"
+            f"✅ <b>{texts['done']}</b>        : 〘 {dmb:.2f} MB of {tmb:.2f} MB 〙\n"
+            f"🚀 <b>{texts['speed']}</b>       : 〘 {smb:.2f} MB/s 〙\n"
+            f"⏳ <b>{texts['eta']}</b>         : 〘 {eta_fmt} 〙\n"
+            f"📶 <b>{texts['network']}</b>     : {net}"
         )
         
         try:

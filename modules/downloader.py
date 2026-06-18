@@ -13,7 +13,7 @@ class UniversalDownloader:
             os.makedirs(download_path)
         self.tracker = ProgressTracker()
 
-    async def download(self, url, message):
+    async def download(self, url, message, texts):
         loop = asyncio.get_running_loop()
 
         def progress_hook(d):
@@ -23,12 +23,12 @@ class UniversalDownloader:
                 filename = os.path.basename(d.get('filename', 'Unknown'))
                 if total > 0:
                     loop.call_soon_threadsafe(
-                        lambda: asyncio.create_task(self.tracker.update_progress(message, current, total, filename))
+                        lambda: asyncio.create_task(self.tracker.update_progress(message, current, total, filename, texts))
                     )
             elif d['status'] == 'finished':
                 filename = os.path.basename(d.get('filename', 'Unknown'))
                 loop.call_soon_threadsafe(
-                    lambda: asyncio.create_task(self.tracker.update_progress(message, 0, 0, filename, is_done=True))
+                    lambda: asyncio.create_task(self.tracker.update_progress(message, 0, 0, filename, texts, is_done=True))
                 )
 
         ydl_opts = {
@@ -55,7 +55,6 @@ class UniversalDownloader:
                             break
 
                 if os.path.exists(file_path):
-                    thumbnail = info.get('thumbnail')
                     await message.reply_video(
                         video=open(file_path, 'rb'),
                         caption=f"✅ <b>{info.get('title')}</b>",
