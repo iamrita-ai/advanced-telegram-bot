@@ -20,49 +20,50 @@ class UniversalDownloader:
             if d['status'] == 'downloading':
                 current = d.get('downloaded_bytes', 0)
                 total = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
-                filename = d.get('filename', 'Unknown')
+                filename = os.path.basename(d.get('filename', 'Unknown'))
                 if total > 0:
                     loop.call_soon_threadsafe(
                         lambda: asyncio.create_task(self.tracker.update_progress(message, current, total, filename))
                     )
+            elif d['status'] == 'finished':
+                filename = os.path.basename(d.get('filename', 'Unknown'))
+                loop.call_soon_threadsafe(
+                    lambda: asyncio.create_task(self.tracker.update_progress(message, 0, 0, filename, is_done=True))
+                )
 
         ydl_opts = {
-            'format': 'best',
+            'format': 'bestvideo+bestaudio/best',
             'outtmpl': f'{self.download_path}/%(title)s.%(ext)s',
             'progress_hooks': [progress_hook],
             'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
             'quiet': True,
-            'extract_flat': False,
             'no_warnings': True,
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
         }
         
-        logger.info(f"[DL] Starting download for URL: {url}")
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                logger.info("[YT-DLP] Extracting info...")
                 info = await asyncio.to_thread(ydl.extract_info, url, download=True)
                 file_path = ydl.prepare_filename(info)
                 
-                # yt-dlp might change extension (e.g. .webm to .mp4)
+                # Handle extension changes
                 if not os.path.exists(file_path):
-                    base_path = os.path.splitext(file_path)[0]
+                    base = os.path.splitext(file_path)[0]
                     for f in os.listdir(self.download_path):
-                        if os.path.join(self.download_path, f).startswith(base_path):
+                        if os.path.join(self.download_path, f).startswith(base):
                             file_path = os.path.join(self.download_path, f)
                             break
 
                 if os.path.exists(file_path):
-                    logger.info(f"[SEND] Sending file: {file_path}")
+                    thumbnail = info.get('thumbnail')
                     await message.reply_video(
-                        video=open(file_path, 'rb'), 
-                        caption=f"✅ Downloaded: {info.get('title')}",
-                        supports_streaming=True
+                        video=open(file_path, 'rb'),
+                        caption=f"✅ <b>{info.get('title')}</b>",
+                        supports_streaming=True,
+                        parse_mode='HTML'
                     )
                     os.remove(file_path)
-                    logger.info(f"[DL] Task completed and file removed.")
                 else:
-                    logger.error(f"[DL] File not found after download: {file_path}")
-                    await message.edit_text("❌ Download failed: File not found.")
+                    await message.edit_text("❌ Error: Media file not found.")
         except Exception as e:
-            logger.error(f"[DL] Error occurred: {str(e)}")
-            await message.edit_text(f"❌ Error: {str(e)}")
+            await message.edit_text(f"❌ Error: {str(e)}\n\n💡 <i>Try uploading cookies.txt for Instagram links.</i>", parse_mode='HTML')
