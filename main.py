@@ -126,17 +126,6 @@ async def start_server():
     site = web.TCPSite(runner, '0.0.0.0', Config.PORT)
     await site.start()
 
-# --- Colored Button Helper ---
-def create_colored_button(text, url=None, callback_data=None, color="primary"):
-    # Telegram Bot API 9.4+ button styling via style parameter
-    # Note: Using raw dict to ensure compatibility with libraries that don't support it yet
-    btn = {"text": text}
-    if url: btn["url"] = url
-    if callback_data: btn["callback_data"] = callback_data
-    # style can be: primary (blue), success (green), danger (red)
-    btn["style"] = color
-    return btn
-
 # --- Bot Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -152,6 +141,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photos = await context.bot.get_user_profile_photos(user.id, limit=1)
         start_pic = photos.photos[0][-1].file_id if photos.total_count > 0 else "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
 
+    # Using standard buttons for maximum compatibility while maintaining aesthetic
     keyboard = [
         [
             InlineKeyboardButton(texts["report"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"),
@@ -177,9 +167,9 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
     await query.answer()
     
     if query.data == "view_tos":
-        await query.message.reply_text(texts.get("tos_full", texts["tos"]), parse_mode='HTML')
+        tos_full = "📜 <b>Terms of Service & Privacy Policy</b>\n\n1. Data Collection: We collect minimal data for preferences.\n2. Media Processing: Files are deleted after delivery.\n3. Responsibility: You are responsible for content downloaded."
+        await query.message.reply_text(tos_full, parse_mode='HTML')
     elif query.data == "change_lang":
-        # Success (Green) style for languages
         buttons = [[InlineKeyboardButton(lang, callback_data=f"setlang_{lang}")] for lang in ["English", "Hindi", "French", "Korean", "Russian"]]
         await query.message.reply_text(f"🌐 <b>{texts['lang']}</b>", reply_markup=InlineKeyboardMarkup(buttons), parse_mode='HTML')
     elif query.data.startswith("setlang_"):

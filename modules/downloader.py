@@ -2,6 +2,7 @@ import yt_dlp
 import os
 import asyncio
 import logging
+import requests
 from utils.progress import ProgressTracker
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,6 @@ class UniversalDownloader:
                 info = await asyncio.to_thread(ydl.extract_info, url, download=True)
                 file_path = ydl.prepare_filename(info)
                 
-                # Handle extension changes
                 if not os.path.exists(file_path):
                     base = os.path.splitext(file_path)[0]
                     for f in os.listdir(self.download_path):
@@ -55,13 +55,38 @@ class UniversalDownloader:
                             break
 
                 if os.path.exists(file_path):
+                    # Extract metadata
+                    duration = info.get('duration')
+                    width = info.get('width')
+                    height = info.get('height')
+                    thumb_url = info.get('thumbnail')
+                    
+                    thumb_path = None
+                    if thumb_url:
+                        try:
+                            thumb_path = f"{file_path}_thumb.jpg"
+                            r = requests.get(thumb_url, stream=True)
+                            if r.status_code == 200:
+                                with open(thumb_path, 'wb') as f:
+                                    for chunk in r: f.write(chunk)
+                        except:
+                            thumb_path = None
+
                     await message.reply_video(
                         video=open(file_path, 'rb'),
                         caption=f"✅ <b>{info.get('title')}</b>",
+                        duration=duration,
+                        width=width,
+                        height=height,
+                        thumb=open(thumb_path, 'rb') if thumb_path else None,
                         supports_streaming=True,
                         parse_mode='HTML'
                     )
+                    
+                    # Cleanup
                     os.remove(file_path)
+                    if thumb_path and os.path.exists(thumb_path):
+                        os.remove(thumb_path)
                 else:
                     await message.edit_text("❌ Error: Media file not found.")
         except Exception as e:
