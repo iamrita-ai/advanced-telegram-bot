@@ -27,6 +27,19 @@ class Database:
             upsert=True
         )
 
+    async def save_cookies(self, service, content):
+        """Save cookies for a specific service (e.g., 'instagram', 'youtube')"""
+        await self.db.settings.update_one(
+            {"key": f"cookies_{service}"},
+            {"$set": {"content": content}},
+            upsert=True
+        )
+
+    async def get_cookies(self, service):
+        """Retrieve cookies for a specific service"""
+        doc = await self.db.settings.find_one({"key": f"cookies_{service}"})
+        return doc.get("content") if doc else None
+
     async def ban_user(self, user_id):
         await self.db.users.update_one({"user_id": user_id}, {"$set": {"banned": True}})
 

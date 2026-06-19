@@ -35,7 +35,7 @@ class AICaptionGenerator:
             ist_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30)
             timestamp = ist_time.strftime("%d-%m-%Y %H:%M:%S IST")
             
-            return f"{caption}\n\n<small>Generated at {timestamp}</small>"
+            return f"{caption}\n\n<i>Generated at {timestamp}</i>"
         except Exception as e:
             logger.error(f"Error generating AI caption: {e}")
             return f"Failed to generate caption: {e}"
