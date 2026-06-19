@@ -47,10 +47,10 @@ class AICaptionGenerator:
             f"Generate an Instagram caption in {language} language."
         ]
 
-        if media_info.get("mood"): prompt_parts.append(f"Mood: {media_info["mood"]}.")
-        if media_info.get("scene"): prompt_parts.append(f"Scene: {media_info["scene"]}.")
-        if media_info.get("objects"): prompt_parts.append(f"Objects: {", ".join(media_info["objects"])}.")
-        if media_info.get("text"): prompt_parts.append(f"Text detected: \"{media_info["text"]}\".")
+        if media_info.get("mood"): prompt_parts.append(f"Mood: {media_info['mood']}.")
+        if media_info.get("scene"): prompt_parts.append(f"Scene: {media_info['scene']}.")
+        if media_info.get("objects"): prompt_parts.append(f"Objects: {', '.join(media_info['objects'])}.")
+        if media_info.get("text"): prompt_parts.append(f"Text detected: \"{media_info['text']}\".")
         
         prompt_parts.append(f"Style: {style}.")
         prompt_parts.append("Length: short.")
