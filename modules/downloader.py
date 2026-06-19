@@ -55,40 +55,49 @@ class UniversalDownloader:
                             break
 
                 if os.path.exists(file_path):
-                    duration = info.get('duration')
-                    width = info.get('width')
-                    height = info.get('height')
-                    thumb_url = info.get('thumbnail')
-                    
-                    thumb_file = None
-                    if thumb_url:
-                        try:
-                            thumb_path = f"{file_path}_thumb.jpg"
-                            r = requests.get(thumb_url, stream=True)
-                            if r.status_code == 200:
-                                with open(thumb_path, 'wb') as f:
-                                    for chunk in r: f.write(chunk)
-                                thumb_file = open(thumb_path, 'rb')
-                        except:
-                            thumb_file = None
-
-                    # Use 'thumbnail' instead of 'thumb' for python-telegram-bot v20+
-                    await message.reply_video(
-                        video=open(file_path, 'rb'),
-                        caption=f"✅ <b>{info.get('title')}</b>",
-                        duration=duration,
-                        width=width,
-                        height=height,
-                        thumbnail=thumb_file,
-                        supports_streaming=True,
-                        parse_mode='HTML'
-                    )
-                    
-                    if thumb_file:
-                        thumb_file.close()
-                        if os.path.exists(thumb_path): os.remove(thumb_path)
-                    os.remove(file_path)
+                    return file_path, info
                 else:
                     await message.edit_text("❌ Error: Media file not found.")
+                    return None, None
         except Exception as e:
             await message.edit_text(f"❌ Error: {str(e)}\n\n💡 <i>Try uploading cookies.txt for Instagram links.</i>", parse_mode='HTML')
+            return None, None
+
+    async def send_media(self, message, file_path, info, caption):
+        try:
+            duration = info.get('duration')
+            width = info.get('width')
+            height = info.get('height')
+            thumb_url = info.get('thumbnail')
+            
+            thumb_file = None
+            thumb_path = None
+            if thumb_url:
+                try:
+                    thumb_path = f"{file_path}_thumb.jpg"
+                    r = requests.get(thumb_url, stream=True)
+                    if r.status_code == 200:
+                        with open(thumb_path, 'wb') as f:
+                            for chunk in r: f.write(chunk)
+                        thumb_file = open(thumb_path, 'rb')
+                except:
+                    thumb_file = None
+
+            await message.reply_video(
+                video=open(file_path, 'rb'),
+                caption=caption,
+                duration=duration,
+                width=width,
+                height=height,
+                thumbnail=thumb_file,
+                supports_streaming=True,
+                parse_mode='HTML'
+            )
+            
+            if thumb_file:
+                thumb_file.close()
+                if os.path.exists(thumb_path): os.remove(thumb_path)
+            os.remove(file_path)
+        except Exception as e:
+            logger.error(f"Error sending media: {e}")
+            await message.reply_text(f"❌ Failed to send media: {str(e)}")

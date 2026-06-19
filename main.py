@@ -11,6 +11,7 @@ from database.mongo import Database
 from modules.downloader import UniversalDownloader
 from modules.instagram import InstagramDownloader
 from modules.music import MusicDownloader
+from modules.ai_caption import AICaptionGenerator
 
 # Setup logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -20,12 +21,13 @@ db = Database(Config.MONGODB_URI)
 universal_dl = UniversalDownloader()
 insta_dl = InstagramDownloader()
 music_dl = MusicDownloader()
+ai_caption = AICaptionGenerator()
 
 # --- Reactions Data (60+ Emojis) ---
 EMOJIS = [
     "🔥", "⚡", "✨", "🌟", "❤️", "🎉", "🚀", "🤖", "😎", "💎", "🎯", "🌈", "🎬", "🎵", "📸", "✅", "👑", "💡", "🛡️", "🤝",
-    "🔥", "🤩", "🥳", "🤯", "🥰", "😍", "😋", "😜", "😇", "🤔", "🤫", "🫡", "🤝", "💪", "🙌", "👏", "🤜", "🤛", "✌️", "🤟",
-    "🎸", "🎹", "🎺", "🎻", "🎧", "🎤", "🎬", "🎥", "🎞️", "🍿", "📺", "🎮", "🕹️", "📱", "💻", "🛰️", "🛸", "🌍", "🌕", "🌞"
+    "🤩", "🥳", "🤯", "🥰", "😍", "😋", "😜", "😇", "🤔", "🤫", "🫡", "💪", "🙌", "👏", "🤜", "🤛", "✌️", "🤟", "🎸", "🎹",
+    "🎺", "🎻", "🎧", "🎤", "🎥", "🎞️", "🍿", "📺", "🎮", "🕹️", "📱", "💻", "🛰️", "🛸", "🌍", "🌕", "🌞", "🍀", "🎈", "🎁"
 ]
 
 # --- Multi-Language Data ---
@@ -82,8 +84,6 @@ async def start_server():
 
 # --- Colored Button Helper ---
 def colored_button(text, url=None, callback_data=None, style="primary"):
-    # Telegram Bot API supports 'style' parameter for buttons in some clients/libraries
-    # We pass it as a raw dictionary to ensure it reaches the API
     btn = {"text": text}
     if url: btn["url"] = url
     if callback_data: btn["callback_data"] = callback_data
@@ -95,8 +95,8 @@ async def send_reaction(update: Update, emoji=None):
     try:
         if not emoji:
             emoji = random.choice(EMOJIS)
-        # set_reaction is available in PTB v20+
-        await update.message.set_reaction(reaction=emoji)
+        # Using big animated reactions
+        await update.message.set_reaction(reaction=emoji, is_big=True)
     except Exception as e:
         logger.error(f"Reaction error: {e}")
 
@@ -116,7 +116,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photos = await context.bot.get_user_profile_photos(user.id, limit=1)
         start_pic = photos.photos[0][-1].file_id if photos.total_count > 0 else "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
 
-    # Using colored buttons logic
     keyboard = [
         [
             colored_button(texts["report"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}", style="danger"),
@@ -130,9 +129,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [colored_button(texts["tos"], callback_data="view_tos", style="danger")]
     ]
     
-    # PTB's InlineKeyboardMarkup accepts lists of lists of dictionaries or InlineKeyboardButton objects
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
     intro = f"{texts['welcome']}\n\n{texts['help_btn']}"
     await update.message.reply_photo(photo=start_pic, caption=intro, reply_markup=reply_markup, parse_mode='HTML')
 
@@ -160,7 +157,12 @@ async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = " ".join(context.args)
     if not url: return await update.message.reply_text("Usage: /dl <url>")
     msg = await update.message.reply_text(texts["processing"])
-    await universal_dl.download(url, msg, texts)
+    
+    # Process download and generate AI caption
+    file_path, info = await universal_dl.download(url, msg, texts)
+    if file_path:
+        caption = await ai_caption.generate_caption(info, language=user_lang)
+        await universal_dl.send_media(update.message, file_path, info, caption)
 
 async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_reaction(update)
@@ -173,11 +175,14 @@ async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cookies_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in Config.OWNER_IDS: return
-    if update.message.document and update.message.document.file_name == "cookies.txt":
+    if update.message.document and update.message.document.file_name.endswith(".txt"):
+        file_name = update.message.document.file_name
         file = await context.bot.get_file(update.message.document.file_id)
-        await file.download_to_drive("cookies.txt")
-        return await update.message.reply_text("✅ <b>cookies.txt</b> updated successfully!", parse_mode='HTML')
-    await update.message.reply_text("❌ Please upload a valid <code>cookies.txt</code> file.", parse_mode='HTML')
+        # Support multiple cookie files (e.g., instagram_cookies.txt, youtube_cookies.txt)
+        save_path = os.path.join(os.getcwd(), file_name)
+        await file.download_to_drive(save_path)
+        return await update.message.reply_text(f"✅ <b>{file_name}</b> updated successfully!", parse_mode='HTML')
+    await update.message.reply_text("❌ Please upload a valid <code>.txt</code> cookie file.", parse_mode='HTML')
 
 async def main():
     asyncio.create_task(start_server())
