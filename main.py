@@ -23,12 +23,8 @@ insta_dl = InstagramDownloader()
 music_dl = MusicDownloader()
 ai_caption = AICaptionGenerator()
 
-# --- Reactions Data (60+ Emojis) ---
-EMOJIS = [
-    "🔥", "⚡", "✨", "🌟", "❤️", "🎉", "🚀", "🤖", "😎", "💎", "🎯", "🌈", "🎬", "🎵", "📸", "✅", "👑", "💡", "🛡️", "🤝",
-    "🤩", "🥳", "🤯", "🥰", "😍", "😋", "😜", "😇", "🤔", "🤫", "🫡", "💪", "🙌", "👏", "🤜", "🤛", "✌️", "🤟", "🎸", "🎹",
-    "🎺", "🎻", "🎧", "🎤", "🎥", "🎞️", "🍿", "📺", "🎮", "🕹️", "📱", "💻", "🛰️", "🛸", "🌍", "🌕", "🌞", "🍀", "🎈", "🎁"
-]
+# --- Reactions Data (Big Animated Emojis) ---
+REACTIONS = ["🔥", "⚡", "✨", "🌟", "❤️", "🎉", "🚀", "🤖", "😎", "💎", "🎯", "🌈", "🎬", "🎵", "📸", "✅", "👑", "💡", "🛡️", "🤝"]
 
 # --- Multi-Language Data ---
 LANG_DATA = {
@@ -48,25 +44,84 @@ LANG_DATA = {
         "speed": "Speed",
         "eta": "ETA",
         "network": "Network",
-        "tos_full": "📜 <b>Terms of Service</b>\n\n<b>1. Data Privacy</b>\nWe value your privacy. Your personal data is not stored on our servers.\n\n<b>2. Usage Policy</b>\nThis bot is intended for personal use only. Do not use it for commercial purposes.\n\n<b>3. Content Responsibility</b>\nYou are solely responsible for the content you download using this bot.\n\n<b>4. No Warranty</b>\nThis service is provided 'as is' without any warranty.\n\n<b>5. Compliance</b>\nEnsure you comply with the terms of the platforms you are downloading from."
+        "tos_full": "📜 <b>Terms of Service</b>\n\n1. Data Privacy\n2. Usage Policy\n3. Content Responsibility\n4. No Warranty\n5. Compliance",
+        "help_text": "🧠 <b>Bot Mind Map</b>\n\n📥 <b>Downloaders</b>\n• <code>/dl [url]</code>\n🎵 <b>Music</b>\n• <code>/music [name]</code>\n👤 <b>Profile</b>\n• <code>/profile [username]</code>"
     },
     "Hindi": {
-        "welcome": "✨ <b>Insta Music में आपका स्वागत है</b> ✨\n\nमैं आपका उन्नत मीडिया सहायक हूँ। मैं उच्च गुणवत्ता के साथ रील्स, संगीत और बहुत कुछ डाउनलोड कर सकता हूँ!",
-        "help_btn": "मेरी सुविधाओं को जानने के लिए /help का उपयोग करें।",
+        "welcome": "✨ <b>Insta Music में आपका स्वागत है</b> ✨\n\nमैं आपका उन्नत मीडिया सहायक हूँ। मैं रील्स और संगीत डाउनलोड कर सकता हूँ!",
+        "help_btn": "/help का उपयोग करें।",
         "report": "त्रुटि रिपोर्ट 🛠",
         "lang": "भाषा 🌐",
         "owner": "मालिक 👑",
         "support": "सहायता 🛠",
         "tos": "📜 सेवा की शर्तें",
-        "processing": "⏳ आपकी लिंक प्रोसेस हो रही है...",
+        "processing": "⏳ प्रोसेस हो रहा है...",
         "searching": "🎵 खोजा जा रहा है: <b>{}</b>...",
-        "downloading": "⬇️ सर्वर से डाउनलोड हो रहा है...",
+        "downloading": "⬇️ डाउनलोड हो रहा है...",
         "done": "पूर्ण",
         "progress": "प्रगति",
         "speed": "गति",
         "eta": "समय",
         "network": "नेटवर्क",
-        "tos_full": "📜 <b>सेवा की शर्तें</b>\n\n<b>1. डेटा गोपनीयता</b>\nहम आपकी गोपनीयता का सम्मान करते हैं। आपका व्यक्तिगत डेटा हमारे सर्वर पर संग्रहीत नहीं किया जाता है।\n\n<b>2. उपयोग नीति</b>\nयह बॉट केवल व्यक्तिगत उपयोग के लिए है। व्यावसायिक उद्देश्यों के लिए इसका उपयोग न करें।\n\n<b>3. सामग्री की जिम्मेदारी</b>\nइस बॉट का उपयोग करके आप जो सामग्री डाउनलोड करते हैं उसके लिए आप पूरी तरह से जिम्मेदार हैं।\n\n<b>4. कोई वारंटी नहीं</b>\nयह सेवा बिना किसी वारंटी के 'जैसी है वैसी' प्रदान की जाती है।\n\n<b>5. अनुपालन</b>\nसुनिश्चित करें कि आप उन प्लेटफार्मों की शर्तों का पालन करते हैं जिनसे आप डाउनलोड कर रहे हैं।"
+        "tos_full": "📜 <b>सेवा की शर्तें</b>\n\n1. डेटा गोपनीयता\n2. उपयोग नीति",
+        "help_text": "🧠 <b>सहायता</b>\n\n📥 <b>डाउनलोडर</b>\n• <code>/dl [url]</code>"
+    },
+    "Korean": {
+        "welcome": "✨ <b>Insta Music에 오신 것을 환영합니다</b> ✨\n\n저는 고급 미디어 도우미입니다. 릴스, 음악 등을 고품질로 다운로드할 수 있습니다!",
+        "help_btn": "/help를 사용하여 기능을 탐색하십시오.",
+        "report": "오류 보고 🛠",
+        "lang": "언어 🌐",
+        "owner": "소유자 👑",
+        "support": "지원 🛠",
+        "tos": "📜 서비스 약관",
+        "processing": "⏳ 링크를 처리 중입니다...",
+        "searching": "🎵 검색 중: <b>{}</b>...",
+        "downloading": "⬇️ 서버에서 다운로드 중...",
+        "done": "완료",
+        "progress": "진행",
+        "speed": "속도",
+        "eta": "남은 시간",
+        "network": "네트워크",
+        "tos_full": "📜 <b>서비스 약관</b>\n\n1. 데이터 개인 정보 보호\n2. 사용 정책",
+        "help_text": "🧠 <b>도움말</b>\n\n📥 <b>다운로더</b>\n• <code>/dl [url]</code>"
+    },
+    "Russian": {
+        "welcome": "✨ <b>Добро пожаловать в Insta Music</b> ✨\n\nЯ ваш продвинутый медиа-помощник. Я могу скачивать Reels, музыку и многое другое в высоком качестве!",
+        "help_btn": "Используйте /help, чтобы изучить мои возможности.",
+        "report": "Сообщить об ошибках 🛠",
+        "lang": "Язык 🌐",
+        "owner": "Владелец 👑",
+        "support": "Поддержка 🛠",
+        "tos": "📜 Условия использования",
+        "processing": "⏳ Обработка вашей ссылки...",
+        "searching": "🎵 Поиск: <b>{}</b>...",
+        "downloading": "⬇️ Загрузка с сервера...",
+        "done": "Готово",
+        "progress": "Прогресс",
+        "speed": "Скорость",
+        "eta": "Осталось",
+        "network": "Сеть",
+        "tos_full": "📜 <b>Условия использования</b>\n\n1. Конфиденциальность данных\n2. Политика использования",
+        "help_text": "🧠 <b>Справка</b>\n\n📥 <b>Загрузчики</b>\n• <code>/dl [url]</code>"
+    },
+    "French": {
+        "welcome": "✨ <b>Bienvenue sur Insta Music</b> ✨\n\nJe suis votre assistant média avancé. Je peux télécharger des Reels, de la musique et plus encore en haute qualité !",
+        "help_btn": "Utilisez /help pour explorer mes fonctionnalités.",
+        "report": "Signaler des erreurs 🛠",
+        "lang": "Langue 🌐",
+        "owner": "Propriétaire 👑",
+        "support": "Support 🛠",
+        "tos": "📜 Conditions d'utilisation",
+        "processing": "⏳ Traitement de votre lien...",
+        "searching": "🎵 Recherche de : <b>{}</b>...",
+        "downloading": "⬇️ Téléchargement depuis le serveur...",
+        "done": "Terminé",
+        "progress": "Progression",
+        "speed": "Vitesse",
+        "eta": "Temps restant",
+        "network": "Réseau",
+        "tos_full": "📜 <b>Conditions d'utilisation</b>\n\n1. Confidentialité des données\n2. Politique d'utilisation",
+        "help_text": "🧠 <b>Aide</b>\n\n📥 <b>Téléchargeurs</b>\n• <code>/dl [url]</code>"
     }
 }
 
@@ -84,19 +139,14 @@ async def start_server():
 
 # --- Colored Button Helper ---
 def colored_button(text, url=None, callback_data=None, style="primary"):
-    btn = {"text": text}
-    if url: btn["url"] = url
-    if callback_data: btn["callback_data"] = callback_data
-    btn["style"] = style
-    return btn
+    return {"text": text, "url": url, "callback_data": callback_data, "style": style}
 
 # --- Bot Handlers ---
 async def send_reaction(update: Update, emoji=None):
     try:
         if not emoji:
-            emoji = random.choice(EMOJIS)
-        # Using standard reactions for better compatibility
-        await update.message.set_reaction(reaction=emoji)
+            emoji = random.choice(REACTIONS)
+        await update.message.set_reaction(reaction=emoji, is_big=True)
     except Exception as e:
         logger.error(f"Reaction error: {e}")
 
@@ -123,38 +173,24 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
         [
-            colored_button(texts["report"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}", style="danger"),
-            colored_button(texts["lang"], callback_data="change_lang", style="primary")
+            InlineKeyboardButton(texts["report"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"),
+            InlineKeyboardButton(texts["lang"], callback_data="change_lang")
         ],
         [
-            colored_button(texts["owner"], url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}", style="success"),
-            colored_button(texts["support"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}", style="primary")
+            InlineKeyboardButton(texts["owner"], url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"),
+            InlineKeyboardButton(texts["support"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")
         ],
-        [colored_button(f"👤 {user.first_name}", url=f"tg://user?id={user.id}", style="primary")],
-        [colored_button(texts["tos"], callback_data="view_tos", style="danger")]
+        [InlineKeyboardButton(f"👤 {user.first_name}", url=f"tg://user?id={user.id}")],
+        [InlineKeyboardButton(texts["tos"], callback_data="view_tos")]
     ]
     
     reply_markup = InlineKeyboardMarkup(keyboard)
-    intro = f"{texts['welcome']}\n\n{texts['help_btn']}"
-    await update.message.reply_photo(photo=start_pic, caption=intro, reply_markup=reply_markup, parse_mode='HTML')
+    await update.message.reply_photo(photo=start_pic, caption=texts["welcome"], reply_markup=reply_markup, parse_mode='HTML')
 
 async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    help_text = (
-        "🧠 <b>Bot Mind Map & Help</b>\n\n"
-        "📥 <b>Downloaders</b>\n"
-        "• <code>/dl [url]</code> - Universal Downloader (Insta, TikTok, etc.)\n"
-        "  <i>Example: /dl https://instagram.com/reel/xxx</i>\n\n"
-        "🎵 <b>Music Search</b>\n"
-        "• <code>#music [name]</code> or <code>/music [name]</code>\n"
-        "  <i>Example: #music Under the influence</i>\n\n"
-        "👤 <b>Instagram Profile</b>\n"
-        "• <code>/profile [username]</code>\n"
-        "  <i>Example: /profile prince572002</i>\n\n"
-        "🍪 <b>Cookies (Admin)</b>\n"
-        "• <code>/cookies [type]</code> - Upload cookies.txt\n"
-        "  <i>Example: /cookies instagram</i>"
-    )
-    await update.message.reply_text(help_text, parse_mode='HTML')
+    user_lang = await db.get_user_lang(update.effective_user.id)
+    texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
+    await update.message.reply_text(texts["help_text"], parse_mode='HTML')
 
 async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -166,7 +202,7 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
     if query.data == "view_tos":
         await query.message.reply_text(texts["tos_full"], parse_mode='HTML')
     elif query.data == "change_lang":
-        buttons = [[colored_button(lang, callback_data=f"setlang_{lang}", style="success")] for lang in ["English", "Hindi", "French", "Korean", "Russian"]]
+        buttons = [[InlineKeyboardButton(lang, callback_data=f"setlang_{lang}")] for lang in ["English", "Hindi", "French", "Korean", "Russian"]]
         await query.message.reply_text(f"🌐 <b>{texts['lang']}</b>", reply_markup=InlineKeyboardMarkup(buttons), parse_mode='HTML')
     elif query.data.startswith("setlang_"):
         new_lang = query.data.split("_")[1]
@@ -181,7 +217,6 @@ async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not url: return await update.message.reply_text("Usage: /dl <url>")
     msg = await update.message.reply_text(texts["processing"])
     
-    # Process download and generate AI caption
     file_path, info = await universal_dl.download(url, msg, texts)
     if file_path:
         caption = await ai_caption.generate_caption(info, language=user_lang)
@@ -198,43 +233,12 @@ async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await send_reaction(update)
     user_lang = await db.get_user_lang(update.effective_user.id)
     texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
-    query = update.message.text.replace("#music", "").strip() if "#music" in update.message.text else " ".join(context.args)
-    if not query: return await update.message.reply_text("Usage: #music <song name>")
+    query = " ".join(context.args)
+    if not query: return await update.message.reply_text("Usage: /music <song name>")
     msg = await update.message.reply_text(texts["searching"].format(query), parse_mode='HTML')
     await music_dl.search_and_download(query, msg)
 
-async def cookies_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.effective_user or update.effective_user.id not in Config.OWNER_IDS: return
-    
-    # Check if user specified a type (e.g., /cookies instagram)
-    service = "instagram"
-    if context.args: service = context.args[0].lower()
-
-    if update.message.document and update.message.document.file_name.endswith(".txt"):
-        file = await context.bot.get_file(update.message.document.file_id)
-        content = (await file.download_as_bytearray()).decode('utf-8')
-        
-        # Save to DB
-        await db.save_cookies(service, content)
-        
-        # Also write to file for current session
-        with open(f"cookies_{service}.txt", "w") as f: f.write(content)
-        if service == "instagram": # Legacy support for default cookies.txt
-            with open("cookies.txt", "w") as f: f.write(content)
-            
-        return await update.message.reply_text(f"✅ <b>Cookies for {service}</b> updated and saved to database!", parse_mode='HTML')
-    
-    await update.message.reply_text(f"❌ Please upload a valid <code>.txt</code> file.\nUsage: <code>/cookies {service}</code>", parse_mode='HTML')
-
 async def main():
-    # Restore cookies from DB on startup
-    for service in ["instagram", "youtube", "any"]:
-        content = await db.get_cookies(service)
-        if content:
-            with open(f"cookies_{service}.txt", "w") as f: f.write(content)
-            if service == "instagram":
-                with open("cookies.txt", "w") as f: f.write(content)
-
     asyncio.create_task(start_server())
     application = ApplicationBuilder().token(Config.BOT_TOKEN).build()
     
@@ -242,11 +246,8 @@ async def main():
     application.add_handler(CommandHandler("help", help_handler))
     application.add_handler(CommandHandler("dl", dl_handler))
     application.add_handler(CommandHandler("profile", profile_handler))
-    application.add_handler(CommandHandler("cookies", cookies_handler))
-    application.add_handler(MessageHandler(filters.Document.FileExtension("txt"), cookies_handler))
-    application.add_handler(CallbackQueryHandler(callback_query_handler))
     application.add_handler(CommandHandler("music", music_handler))
-    application.add_handler(MessageHandler(filters.Regex(r'^#music'), music_handler))
+    application.add_handler(CallbackQueryHandler(callback_query_handler))
     
     logger.info("Bot is starting...")
     await application.initialize()

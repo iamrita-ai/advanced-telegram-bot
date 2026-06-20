@@ -8,52 +8,45 @@ logger = logging.getLogger(__name__)
 class AICaptionGenerator:
     def __init__(self):
         self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-        self.models = [
-            "llama-3.3-70b-versatile",
-            "llama-3.1-8b-instant"
-        ]
+        self.model = "llama-3.3-70b-versatile"
 
-    async def generate_caption(self, media_info: dict, style: str = "normal", language: str = "English") -> str:
-        prompt = self._build_prompt(media_info, style, language)
+    async def generate_caption(self, media_info: dict, language: str = "English") -> str:
+        # Build metadata-driven prompt
+        title = media_info.get("title", "N/A")
+        description = media_info.get("description", "N/A")
+        tags = ", ".join(media_info.get("tags", [])) if media_info.get("tags") else "N/A"
+        uploader = media_info.get("uploader", "N/A")
+        uploader_url = media_info.get("uploader_url", "#")
+
+        prompt = (
+            f"Generate 5 short and creative Instagram captions in {language}.\n\n"
+            f"Title: {title}\n"
+            f"Description: {description}\n"
+            f"Tags: {tags}\n\n"
+            "Return only the captions, one per line, starting with an emoji. Do not use checkmark emojis."
+        )
+
         try:
             completion = self.client.chat.completions.create(
-                model=self.models[0], # Use the versatile model by default
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=200,
-                top_p=1,
-                stream=False,
-                stop=None
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.8,
+                max_tokens=300
             )
-            caption = completion.choices[0].message.content.strip()
-            # Remove checkmark emojis as requested
-            caption = caption.replace("✅", "").strip()
+            ai_output = completion.choices[0].message.content.strip()
             
-            # Add IST timestamp
+            # IST Timestamp
             ist_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30)
             timestamp = ist_time.strftime("%d-%m-%Y %H:%M:%S IST")
             
-            return f"{caption}\n\n<i>Generated at {timestamp}</i>"
+            # Format final caption
+            final_caption = (
+                f"<b>Title</b> - {ai_output.split('\n')[0]}\n"
+                f"<b>Creator</b> - <a href='{uploader_url}'>{uploader}</a>\n"
+                f"<b>Time</b> - {timestamp}\n"
+                f"<b>Download Through</b> - <a href='https://t.me/Insta_musicRena_bot'>Insta Music</a>"
+            )
+            return final_caption
         except Exception as e:
-            logger.error(f"Error generating AI caption: {e}")
-            return f"Failed to generate caption: {e}"
-
-    def _build_prompt(self, media_info: dict, style: str, language: str) -> str:
-        # Example media_info: {"scene":"sunset beach", "mood":"peaceful", "objects":["sea","person"], "text":""}
-        
-        prompt_parts = [
-            f"Generate an Instagram caption in {language} language."
-        ]
-
-        if media_info.get("mood"): prompt_parts.append(f"Mood: {media_info['mood']}.")
-        if media_info.get("scene"): prompt_parts.append(f"Scene: {media_info['scene']}.")
-        if media_info.get("objects"): prompt_parts.append(f"Objects: {', '.join(media_info['objects'])}.")
-        if media_info.get("text"): prompt_parts.append(f"Text detected: \"{media_info['text']}\".")
-        
-        prompt_parts.append(f"Style: {style}.")
-        prompt_parts.append("Length: short.")
-        prompt_parts.append("Ensure no checkmark emojis are used.")
-
-        return " ".join(prompt_parts)
+            logger.error(f"AI Caption Error: {e}")
+            return f"<b>Title</b> - {title}\n<b>Time</b> - {timestamp}"

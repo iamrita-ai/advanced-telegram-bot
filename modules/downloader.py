@@ -55,7 +55,19 @@ class UniversalDownloader:
                             break
 
                 if os.path.exists(file_path):
-                    return file_path, info
+                    # Metadata for AI
+                    metadata = {
+                        "title": info.get("title", "N/A"),
+                        "description": info.get("description", "N/A"),
+                        "tags": info.get("tags", []),
+                        "uploader": info.get("uploader", "N/A"),
+                        "uploader_url": info.get("uploader_url", "#"),
+                        "duration": info.get("duration"),
+                        "width": info.get("width"),
+                        "height": info.get("height"),
+                        "thumbnail": info.get("thumbnail")
+                    }
+                    return file_path, metadata
                 else:
                     await message.edit_text("❌ Error: Media file not found.")
                     return None, None
