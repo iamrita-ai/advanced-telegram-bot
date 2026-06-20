@@ -2,6 +2,7 @@ import os
 import logging
 import asyncio
 import random
+import datetime
 from aiohttp import web
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
@@ -23,8 +24,12 @@ insta_dl = InstagramDownloader()
 music_dl = MusicDownloader()
 ai_caption = AICaptionGenerator()
 
-# --- Reactions Data (Big Animated Emojis) ---
-REACTIONS = ["🔥", "⚡", "✨", "🌟", "❤️", "🎉", "🚀", "🤖", "😎", "💎", "🎯", "🌈", "🎬", "🎵", "📸", "✅", "👑", "💡", "🛡️", "🤝"]
+# --- Reactions Data (60+ Big Animated Emojis) ---
+REACTIONS = [
+    "🔥", "⚡", "✨", "🌟", "❤️", "🎉", "🚀", "🤖", "😎", "💎", "🎯", "🌈", "🎬", "🎵", "📸", "✅", "👑", "💡", "🛡️", "🤝",
+    "👏", "🙌", "🤩", "🥳", "🎊", "🎆", "🎇", "🌠", "🌌", "🌍", "🌎", "🌏", "🛸", "👾", "🎮", "🎸", "🎹", "🎺", "🎻", "🎤",
+    "🎧", "🎨", "🎭", "🎫", "🏆", "🏅", "🥇", "🥈", "🥉", "💪", "🧠", "🔥", "💥", "💨", "💦", "🌪️", "🌊", "🔥", "🍀", "🌹"
+]
 
 # --- Multi-Language Data ---
 LANG_DATA = {
@@ -44,8 +49,8 @@ LANG_DATA = {
         "speed": "Speed",
         "eta": "ETA",
         "network": "Network",
-        "tos_full": "📜 <b>Terms of Service</b>\n\n1. Data Privacy\n2. Usage Policy\n3. Content Responsibility\n4. No Warranty\n5. Compliance",
-        "help_text": "🧠 <b>Bot Mind Map</b>\n\n📥 <b>Downloaders</b>\n• <code>/dl [url]</code>\n🎵 <b>Music</b>\n• <code>/music [name]</code>\n👤 <b>Profile</b>\n• <code>/profile [username]</code>"
+        "tos_full": "📜 <b>Terms of Service</b>\n\n1. Data Privacy: We do not store your personal media.\n2. Usage Policy: Use responsibly.\n3. Content Responsibility: You are responsible for the content you download.\n4. No Warranty: Provided as-is.\n5. Compliance: Follow Telegram and source platform terms.",
+        "help_text": "🧠 <b>Bot Mind Map</b>\n\n📥 <b>Downloaders</b>\n• <code>/dl [url]</code> - Download any video/reel\n🎵 <b>Music</b>\n• <code>/music [name]</code> - Search and download MP3\n👤 <b>Profile</b>\n• <code>/profile [username]</code> - Download Insta profile pic"
     },
     "Hindi": {
         "welcome": "✨ <b>Insta Music में आपका स्वागत है</b> ✨\n\nमैं आपका उन्नत मीडिया सहायक हूँ। मैं रील्स और संगीत डाउनलोड कर सकता हूँ!",
@@ -63,8 +68,8 @@ LANG_DATA = {
         "speed": "गति",
         "eta": "समय",
         "network": "नेटवर्क",
-        "tos_full": "📜 <b>सेवा की शर्तें</b>\n\n1. डेटा गोपनीयता\n2. उपयोग नीति",
-        "help_text": "🧠 <b>सहायता</b>\n\n📥 <b>डाउनलोडर</b>\n• <code>/dl [url]</code>"
+        "tos_full": "📜 <b>सेवा की शर्तें</b>\n\n1. डेटा गोपनीयता\n2. उपयोग नीति\n3. सामग्री जिम्मेदारी\n4. कोई वारंटी नहीं\n5. अनुपालन",
+        "help_text": "🧠 <b>सहायता माइंड मैप</b>\n\n📥 <b>डाउनलोडर</b>\n• <code>/dl [url]</code> - कोई भी वीडियो डाउनलोड करें\n🎵 <b>संगीत</b>\n• <code>/music [name]</code> - MP3 खोजें और डाउनलोड करें\n👤 <b>प्रोफ़ाइल</b>\n• <code>/profile [username]</code> - इंस्टा प्रोफ़ाइल फोटो डाउनलोड करें"
     },
     "Korean": {
         "welcome": "✨ <b>Insta Music에 오신 것을 환영합니다</b> ✨\n\n저는 고급 미디어 도우미입니다. 릴스, 음악 등을 고품질로 다운로드할 수 있습니다!",
@@ -82,8 +87,8 @@ LANG_DATA = {
         "speed": "속도",
         "eta": "남은 시간",
         "network": "네트워크",
-        "tos_full": "📜 <b>서비스 약관</b>\n\n1. 데이터 개인 정보 보호\n2. 사용 정책",
-        "help_text": "🧠 <b>도움말</b>\n\n📥 <b>다운로더</b>\n• <code>/dl [url]</code>"
+        "tos_full": "📜 <b>서비스 약관</b>\n\n1. 데이터 개인 정보 보호\n2. 사용 정책\n3. 콘텐츠 책임\n4. 보증 없음\n5. 규정 준수",
+        "help_text": "🧠 <b>봇 마인드 맵</b>\n\n📥 <b>다운로더</b>\n• <code>/dl [url]</code> - 모든 비디오 다운로드\n🎵 <b>음악</b>\n• <code>/music [name]</code> - MP3 검색 및 다운로드\n👤 <b>프로필</b>\n• <code>/profile [username]</code> - 인스타 프로필 사진 다운로드"
     },
     "Russian": {
         "welcome": "✨ <b>Добро пожаловать в Insta Music</b> ✨\n\nЯ ваш продвинутый медиа-помощник. Я могу скачивать Reels, музыку и многое другое в высоком качестве!",
@@ -101,8 +106,8 @@ LANG_DATA = {
         "speed": "Скорость",
         "eta": "Осталось",
         "network": "Сеть",
-        "tos_full": "📜 <b>Условия использования</b>\n\n1. Конфиденциальность данных\n2. Политика использования",
-        "help_text": "🧠 <b>Справка</b>\n\n📥 <b>Загрузчики</b>\n• <code>/dl [url]</code>"
+        "tos_full": "📜 <b>Условия использования</b>\n\n1. Конфиденциальность данных\n2. Политика использования\n3. Ответственность за контент\n4. Отказ от гарантий\n5. Соблюдение правил",
+        "help_text": "🧠 <b>Карта функций бота</b>\n\n📥 <b>Загрузчики</b>\n• <code>/dl [url]</code> - Скачать любое видео\n🎵 <b>Музыка</b>\n• <code>/music [name]</code> - Поиск и скачивание MP3\n👤 <b>Профиль</b>\n• <code>/profile [username]</code> - Скачать фото профиля Инста"
     },
     "French": {
         "welcome": "✨ <b>Bienvenue sur Insta Music</b> ✨\n\nJe suis votre assistant média avancé. Je peux télécharger des Reels, de la musique et plus encore en haute qualité !",
@@ -120,8 +125,8 @@ LANG_DATA = {
         "speed": "Vitesse",
         "eta": "Temps restant",
         "network": "Réseau",
-        "tos_full": "📜 <b>Conditions d'utilisation</b>\n\n1. Confidentialité des données\n2. Politique d'utilisation",
-        "help_text": "🧠 <b>Aide</b>\n\n📥 <b>Téléchargeurs</b>\n• <code>/dl [url]</code>"
+        "tos_full": "📜 <b>Conditions d'utilisation</b>\n\n1. Confidentialité des données\n2. Politique d'utilisation\n3. Responsabilité du contenu\n4. Aucune garantie\n5. Conformité",
+        "help_text": "🧠 <b>Carte mentale du bot</b>\n\n📥 <b>Téléchargeurs</b>\n• <code>/dl [url]</code> - Télécharger n'importe quelle vidéo\n🎵 <b>Musique</b>\n• <code>/music [name]</code> - Rechercher et télécharger MP3\n👤 <b>Profil</b>\n• <code>/profile [username]</code> - Télécharger la photo de profil Insta"
     }
 }
 
@@ -137,15 +142,13 @@ async def start_server():
     site = web.TCPSite(runner, '0.0.0.0', Config.PORT)
     await site.start()
 
-# --- Colored Button Helper ---
-def colored_button(text, url=None, callback_data=None, style="primary"):
-    return {"text": text, "url": url, "callback_data": callback_data, "style": style}
-
 # --- Bot Handlers ---
 async def send_reaction(update: Update, emoji=None):
     try:
         if not emoji:
             emoji = random.choice(REACTIONS)
+        # Big animated reactions require specific API call or premium status
+        # We will use the standard reaction method which shows as big if is_big=True
         await update.message.set_reaction(reaction=emoji, is_big=True)
     except Exception as e:
         logger.error(f"Reaction error: {e}")
