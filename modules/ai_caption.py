@@ -40,8 +40,9 @@ class AICaptionGenerator:
             timestamp = ist_time.strftime("%d-%m-%Y %H:%M:%S IST")
             
             # Format final caption
+            first_caption = ai_output.split('\n')[0]
             final_caption = (
-                f"<b>Title</b> - {ai_output.split('\n')[0]}\n"
+                f"<b>Title</b> - {first_caption}\n"
                 f"<b>Creator</b> - <a href='{uploader_url}'>{uploader}</a>\n"
                 f"<b>Time</b> - {timestamp}\n"
                 f"<b>Download Through</b> - <a href='https://t.me/Insta_musicRena_bot'>Insta Music</a>"

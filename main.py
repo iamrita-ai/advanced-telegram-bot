@@ -25,11 +25,8 @@ music_dl = MusicDownloader()
 ai_caption = AICaptionGenerator()
 
 # --- Reactions Data (60+ Big Animated Emojis) ---
-REACTIONS = [
-    "🔥", "⚡", "✨", "🌟", "❤️", "🎉", "🚀", "🤖", "😎", "💎", "🎯", "🌈", "🎬", "🎵", "📸", "✅", "👑", "💡", "🛡️", "🤝",
-    "👏", "🙌", "🤩", "🥳", "🎊", "🎆", "🎇", "🌠", "🌌", "🌍", "🌎", "🌏", "🛸", "👾", "🎮", "🎸", "🎹", "🎺", "🎻", "🎤",
-    "🎧", "🎨", "🎭", "🎫", "🏆", "🏅", "🥇", "🥈", "🥉", "💪", "🧠", "🔥", "💥", "💨", "💦", "🌪️", "🌊", "🔥", "🍀", "🌹"
-]
+# Only use standard emojis that are reliably supported as big animated reactions in Telegram
+REACTIONS = ["🔥", "👍", "👎", "❤️", "🎉", "🤩", "🙏", "⚡", "👏", "😁", "🤔", "🤯", "😱", "🤬", "😢", "🥳", "🎉", "🎈", "🎊", "😎"]
 
 # --- Multi-Language Data ---
 LANG_DATA = {
