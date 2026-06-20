@@ -238,6 +238,22 @@ async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = await update.message.reply_text(texts["searching"].format(query), parse_mode='HTML')
     await music_dl.search_and_download(query, msg)
 
+async def cookies_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, service=None):
+    if not update.effective_user or update.effective_user.id not in Config.OWNER_IDS: return
+    
+    if not service:
+        service = "instagram"
+        if context.args: service = context.args[0].lower()
+
+    if update.message.document and update.message.document.file_name.endswith(".txt"):
+        file = await context.bot.get_file(update.message.document.file_id)
+        content = (await file.download_as_bytearray()).decode('utf-8')
+        await db.save_cookies(service, content)
+        with open(f"cookies_{service}.txt", "w") as f: f.write(content)
+        return await update.message.reply_text(f"✅ Cookies for {service} updated!")
+    
+    await update.message.reply_text(f"❌ Upload a .txt file for {service} cookies.")
+
 async def main():
     asyncio.create_task(start_server())
     application = ApplicationBuilder().token(Config.BOT_TOKEN).build()
@@ -247,6 +263,9 @@ async def main():
     application.add_handler(CommandHandler("dl", dl_handler))
     application.add_handler(CommandHandler("profile", profile_handler))
     application.add_handler(CommandHandler("music", music_handler))
+    application.add_handler(CommandHandler("insta", lambda u, c: cookies_handler(u, c, "instagram")))
+    application.add_handler(CommandHandler("yt", lambda u, c: cookies_handler(u, c, "youtube")))
+    application.add_handler(MessageHandler(filters.Document.FileExtension("txt"), cookies_handler))
     application.add_handler(CallbackQueryHandler(callback_query_handler))
     
     logger.info("Bot is starting...")
