@@ -25,8 +25,7 @@ music_dl = MusicDownloader()
 ai_caption = AICaptionGenerator()
 
 # --- Reactions Data (60+ Big Animated Emojis) ---
-# Only use standard emojis that are reliably supported as big animated reactions in Telegram
-REACTIONS = ["🔥", "👍", "👎", "❤️", "🎉", "🤩", "🙏", "⚡", "👏", "😁", "🤔", "🤯", "😱", "🤬", "😢", "🥳", "🎉", "🎈", "🎊", "😎"]
+REACTIONS = ["🔥", "👍", "👎", "❤️", "🎉", "🤩", "🙏", "⚡", "👏", "😁", "🤔", "🤯", "😱", "🤬", "😢", "🥳", "🎈", "🎊", "😎", "🌟"]
 
 # --- Multi-Language Data ---
 LANG_DATA = {
@@ -144,8 +143,6 @@ async def send_reaction(update: Update, emoji=None):
     try:
         if not emoji:
             emoji = random.choice(REACTIONS)
-        # Big animated reactions require specific API call or premium status
-        # We will use the standard reaction method which shows as big if is_big=True
         await update.message.set_reaction(reaction=emoji, is_big=True)
     except Exception as e:
         logger.error(f"Reaction error: {e}")
@@ -154,6 +151,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if not user: return
     
+    await db.add_user(user.id, user.username)
     user_lang = await db.get_user_lang(user.id)
     texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
     
@@ -169,22 +167,37 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             photos = await context.bot.get_user_profile_photos(user.id, limit=1)
             start_pic = photos.photos[0][-1].file_id if photos.total_count > 0 else "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
         except:
-            start_pic = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
+            start_pic = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
 
     keyboard = [
         [
-            InlineKeyboardButton(texts["report"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}"),
-            InlineKeyboardButton(texts["lang"], callback_data="change_lang")
+            {"text": texts["report"], "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}"},
+            {"text": texts["lang"], "callback_data": "change_lang"}
         ],
         [
-            InlineKeyboardButton(texts["owner"], url=f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"),
-            InlineKeyboardButton(texts["support"], url=f"https://t.me/{Config.OWNER_USERNAME[1:]}")
+            {"text": texts["owner"], "url": f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"},
+            {"text": texts["support"], "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}"}
         ],
-        [InlineKeyboardButton(f"👤 {user.first_name}", url=f"tg://user?id={user.id}")],
-        [InlineKeyboardButton(texts["tos"], callback_data="view_tos")]
+        [{"text": f"👤 {user.first_name}", "url": f"tg://user?id={user.id}"}],
+        [{"text": texts["tos"], "callback_data": "view_tos"}]
     ]
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    # Use dict for colored buttons styling bypass
+    reply_markup = {
+        "inline_keyboard": [
+            [
+                {"text": texts["report"], "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}", "style": "danger"},
+                {"text": texts["lang"], "callback_data": "change_lang", "style": "primary"}
+            ],
+            [
+                {"text": texts["owner"], "url": f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}", "style": "success"},
+                {"text": texts["support"], "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}", "style": "primary"}
+            ],
+            [{"text": f"👤 {user.first_name}", "url": f"tg://user?id={user.id}", "style": "primary"}],
+            [{"text": texts["tos"], "callback_data": "view_tos", "style": "primary"}]
+        ]
+    }
+    
     await update.message.reply_photo(photo=start_pic, caption=texts["welcome"], reply_markup=reply_markup, parse_mode='HTML')
 
 async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -202,8 +215,8 @@ async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_T
     if query.data == "view_tos":
         await query.message.reply_text(texts["tos_full"], parse_mode='HTML')
     elif query.data == "change_lang":
-        buttons = [[InlineKeyboardButton(lang, callback_data=f"setlang_{lang}")] for lang in ["English", "Hindi", "French", "Korean", "Russian"]]
-        await query.message.reply_text(f"🌐 <b>{texts['lang']}</b>", reply_markup=InlineKeyboardMarkup(buttons), parse_mode='HTML')
+        buttons = [[{"text": lang, "callback_data": f"setlang_{lang}", "style": "primary"}] for lang in ["English", "Hindi", "French", "Korean", "Russian"]]
+        await query.message.reply_text(f"🌐 <b>{texts['lang']}</b>", reply_markup={"inline_keyboard": buttons}, parse_mode='HTML')
     elif query.data.startswith("setlang_"):
         new_lang = query.data.split("_")[1]
         await db.set_user_lang(user_id, new_lang)
@@ -227,6 +240,12 @@ async def profile_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = " ".join(context.args)
     if not username: return await update.message.reply_text("Usage: /profile <username>")
     msg = await update.message.reply_text(f"📸 Fetching Instagram profile: @{username}...")
+    
+    # Ensure cookies are loaded for profile fetching
+    cookies = await db.get_cookies("instagram")
+    if cookies:
+        with open("cookies_instagram.txt", "w") as f: f.write(cookies)
+    
     await insta_dl.download_profile(username, msg)
 
 async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -236,27 +255,46 @@ async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = " ".join(context.args)
     if not query: return await update.message.reply_text("Usage: /music <song name>")
     msg = await update.message.reply_text(texts["searching"].format(query), parse_mode='HTML')
+    
+    # Ensure cookies are loaded for music search
+    cookies = await db.get_cookies("youtube")
+    if cookies:
+        with open("cookies_youtube.txt", "w") as f: f.write(cookies)
+        
     await music_dl.search_and_download(query, msg)
 
 async def cookies_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, service=None):
-    if not update.effective_user or update.effective_user.id not in Config.OWNER_IDS: return
+    user_id = update.effective_user.id
+    if user_id not in Config.OWNER_IDS: return
     
     if not service:
-        service = "instagram"
         if context.args: service = context.args[0].lower()
+        else: service = "instagram"
 
-    if update.message.document and update.message.document.file_name.endswith(".txt"):
-        file = await context.bot.get_file(update.message.document.file_id)
+    # Check if this is a reply to a document
+    target_msg = update.message
+    if update.message.reply_to_message and update.message.reply_to_message.document:
+        target_msg = update.message.reply_to_message
+
+    if target_msg.document and target_msg.document.file_name.endswith(".txt"):
+        file = await context.bot.get_file(target_msg.document.file_id)
         content = (await file.download_as_bytearray()).decode('utf-8')
         await db.save_cookies(service, content)
         with open(f"cookies_{service}.txt", "w") as f: f.write(content)
-        return await update.message.reply_text(f"✅ Cookies for {service} updated!")
+        return await update.message.reply_text(f"✅ Cookies for {service} updated and saved to DB!")
     
-    await update.message.reply_text(f"❌ Upload a .txt file for {service} cookies.")
+    await update.message.reply_text(f"❌ Please reply to a .txt file with /{service} to set cookies.")
 
 async def main():
     asyncio.create_task(start_server())
     application = ApplicationBuilder().token(Config.BOT_TOKEN).build()
+    
+    # Restore cookies from DB on startup
+    for service in ["instagram", "youtube"]:
+        cookies = await db.get_cookies(service)
+        if cookies:
+            with open(f"cookies_{service}.txt", "w") as f: f.write(cookies)
+            logger.info(f"Restored {service} cookies from database.")
     
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_handler))
