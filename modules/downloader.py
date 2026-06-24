@@ -32,11 +32,24 @@ class UniversalDownloader:
                     lambda: asyncio.create_task(self.tracker.update_progress(message, 0, 0, filename, texts, is_done=True))
                 )
 
+        # Determine which cookie file to use based on URL
+        cookie_file = None
+        if "instagram.com" in url:
+            if os.path.exists('cookies_instagram.txt'):
+                cookie_file = 'cookies_instagram.txt'
+        elif "youtube.com" in url or "youtu.be" in url:
+            if os.path.exists('cookies_youtube.txt'):
+                cookie_file = 'cookies_youtube.txt'
+        
+        # Fallback to general cookies.txt if service specific one doesn't exist
+        if not cookie_file and os.path.exists('cookies.txt'):
+            cookie_file = 'cookies.txt'
+
         ydl_opts = {
             'format': 'bestvideo+bestaudio/best',
             'outtmpl': f'{self.download_path}/%(title)s.%(ext)s',
             'progress_hooks': [progress_hook],
-            'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
+            'cookiefile': cookie_file,
             'quiet': True,
             'no_warnings': True,
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
@@ -72,7 +85,7 @@ class UniversalDownloader:
                     await message.edit_text("❌ Error: Media file not found.")
                     return None, None
         except Exception as e:
-            await message.edit_text(f"❌ Error: {str(e)}\n\n💡 <i>Try uploading cookies.txt for Instagram links.</i>", parse_mode='HTML')
+            await message.edit_text(f"❌ Error: {str(e)}\n\n💡 <i>Try uploading cookies using /insta or /yt.</i>", parse_mode='HTML')
             return None, None
 
     async def send_media(self, message, file_path, info, caption):
