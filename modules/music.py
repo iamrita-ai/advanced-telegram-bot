@@ -37,6 +37,9 @@ class MusicDownloader:
                     lambda: asyncio.create_task(self.tracker.update_progress(message, 0, 0, filename, texts, is_done=True))
                 )
 
+        # Use YouTube specific cookies for music search
+        cookie_file = 'cookies_youtube.txt' if os.path.exists('cookies_youtube.txt') else ('cookies.txt' if os.path.exists('cookies.txt') else None)
+
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': f'{self.download_path}/%(title)s.%(ext)s',
@@ -46,7 +49,7 @@ class MusicDownloader:
                 'preferredquality': '192',
             }],
             'progress_hooks': [progress_hook],
-            'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
+            'cookiefile': cookie_file,
             'quiet': True,
             'no_warnings': True,
             'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
