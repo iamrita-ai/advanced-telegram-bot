@@ -3,6 +3,7 @@ import logging
 import asyncio
 import random
 import datetime
+import traceback
 from aiohttp import web
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
@@ -25,7 +26,7 @@ music_dl = MusicDownloader()
 ai_caption = AICaptionGenerator()
 
 # --- Reactions Data (60+ Big Animated Emojis) ---
-REACTIONS = ["🔥", "👍", "👎", "❤️", "🎉", "🤩", "🙏", "⚡", "👏", "😁", "🤔", "🤯", "😱", "🤬", "😢", "🥳", "🎈", "🎊", "😎", "🌟"]
+REACTIONS = ["🔥", "👍", "👎", "❤️", "🎉", "🤩", "🙏", "⚡", "👏", "😁", "🤔", "🤯", "😱", "🤬", "😢", "🥳", "🎈", "🎊", "😎", "🌟", "🔥", "✨", "🌈", "💥", "🍎", "🍕", "🍔", "🍦", "🎸", "🎮", "📱", "💻", "⌚", "🚀", "🛸", "🚁", "⛵", "🗽", "🗼", "🏰", "🌋", "🏖️", "🏔️", "🏜️", "🏝️", "🏕️", "🏟️", "🏗️", "🏘️", "🏙️", "🏚️", "🏛️", "⛪", "🕌", "🕍", "🕋", "⛩️", "🗾", "🎑", "🏞️"]
 
 # --- Multi-Language Data ---
 LANG_DATA = {
@@ -141,6 +142,7 @@ async def start_server():
 # --- Bot Handlers ---
 async def send_reaction(update: Update, emoji=None):
     try:
+        if not update.message: return
         if not emoji:
             emoji = random.choice(REACTIONS)
         await update.message.set_reaction(reaction=emoji, is_big=True)
@@ -148,169 +150,186 @@ async def send_reaction(update: Update, emoji=None):
         logger.error(f"Reaction error: {e}")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    if not user: return
-    
-    await db.add_user(user.id, user.username)
-    user_lang = await db.get_user_lang(user.id)
-    texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
-    
-    if not await check_force_sub(context.bot, user.id):
-        await send_reaction(update, "💩")
-        join_btn = InlineKeyboardMarkup([[InlineKeyboardButton("Join Channel", url=f"https://t.me/{Config.FORCE_SUB_CHANNEL[1:]}")]])
-        return await update.message.reply_text(f"❌ Access Denied!\n\nPlease join {Config.FORCE_SUB_CHANNEL} to use me.", reply_markup=join_btn)
+    try:
+        user = update.effective_user
+        if not user: return
+        
+        await db.add_user(user.id, user.username)
+        user_lang = await db.get_user_lang(user.id)
+        texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
+        
+        if not await check_force_sub(context.bot, user.id):
+            await send_reaction(update, "💩")
+            join_btn = InlineKeyboardMarkup([[InlineKeyboardButton("Join Channel", url=f"https://t.me/{Config.FORCE_SUB_CHANNEL[1:]}")]])
+            return await update.message.reply_text(f"❌ Access Denied!\n\nPlease join {Config.FORCE_SUB_CHANNEL} to use me.", reply_markup=join_btn)
 
-    await send_reaction(update)
-    start_pic = Config.START_PIC
-    if not start_pic:
-        try:
-            photos = await context.bot.get_user_profile_photos(user.id, limit=1)
-            start_pic = photos.photos[0][-1].file_id if photos.total_count > 0 else "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
-        except:
-            start_pic = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
+        await send_reaction(update)
+        start_pic = Config.START_PIC
+        if not start_pic:
+            try:
+                photos = await context.bot.get_user_profile_photos(user.id, limit=1)
+                start_pic = photos.photos[0][-1].file_id if photos.total_count > 0 else "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
+            except:
+                start_pic = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKMGpxx669K876g/giphy.gif"
 
-    keyboard = [
-        [
-            {"text": texts["report"], "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}"},
-            {"text": texts["lang"], "callback_data": "change_lang"}
-        ],
-        [
-            {"text": texts["owner"], "url": f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}"},
-            {"text": texts["support"], "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}"}
-        ],
-        [{"text": f"👤 {user.first_name}", "url": f"tg://user?id={user.id}"}],
-        [{"text": texts["tos"], "callback_data": "view_tos"}]
-    ]
-    
-    # Use dict for colored buttons styling bypass
-    reply_markup = {
-        "inline_keyboard": [
-            [
-                {"text": texts["report"], "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}", "style": "danger"},
-                {"text": texts["lang"], "callback_data": "change_lang", "style": "primary"}
-            ],
-            [
-                {"text": texts["owner"], "url": f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}", "style": "success"},
-                {"text": texts["support"], "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}", "style": "primary"}
-            ],
-            [{"text": f"👤 {user.first_name}", "url": f"tg://user?id={user.id}", "style": "primary"}],
-            [{"text": texts["tos"], "callback_data": "view_tos", "style": "primary"}]
-        ]
-    }
-    
-    await update.message.reply_photo(photo=start_pic, caption=texts["welcome"], reply_markup=reply_markup, parse_mode='HTML')
+        # Use standard InlineKeyboardButton but styling bypass via dictionary-based approach for reply_markup
+        reply_markup = {
+            "inline_keyboard": [
+                [
+                    {"text": texts["report"], "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}", "style": "danger"},
+                    {"text": texts["lang"], "callback_data": "change_lang", "style": "primary"}
+                ],
+                [
+                    {"text": texts["owner"], "url": f"https://t.me/{Config.DEVELOPER_USERNAME[1:]}", "style": "success"},
+                    {"text": texts["support"], "url": f"https://t.me/{Config.OWNER_USERNAME[1:]}", "style": "primary"}
+                ],
+                [{"text": f"👤 {user.first_name}", "url": f"tg://user?id={user.id}", "style": "primary"}],
+                [{"text": texts["tos"], "callback_data": "view_tos", "style": "primary"}]
+            ]
+        }
+        
+        await update.message.reply_photo(photo=start_pic, caption=texts["welcome"], reply_markup=reply_markup, parse_mode='HTML')
+    except Exception as e:
+        logger.error(f"Start handler error: {e}\n{traceback.format_exc()}")
 
 async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_lang = await db.get_user_lang(update.effective_user.id)
-    texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
-    await update.message.reply_text(texts["help_text"], parse_mode='HTML')
+    try:
+        user_lang = await db.get_user_lang(update.effective_user.id)
+        texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
+        await update.message.reply_text(texts["help_text"], parse_mode='HTML')
+    except Exception as e:
+        logger.error(f"Help handler error: {e}")
 
 async def callback_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user_id = query.from_user.id
-    user_lang = await db.get_user_lang(user_id)
-    texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
-    await query.answer()
-    
-    if query.data == "view_tos":
-        await query.message.reply_text(texts["tos_full"], parse_mode='HTML')
-    elif query.data == "change_lang":
-        buttons = [[{"text": lang, "callback_data": f"setlang_{lang}", "style": "primary"}] for lang in ["English", "Hindi", "French", "Korean", "Russian"]]
-        await query.message.reply_text(f"🌐 <b>{texts['lang']}</b>", reply_markup={"inline_keyboard": buttons}, parse_mode='HTML')
-    elif query.data.startswith("setlang_"):
-        new_lang = query.data.split("_")[1]
-        await db.set_user_lang(user_id, new_lang)
-        await query.message.edit_text(f"✅ Language changed to: <b>{new_lang}</b>", parse_mode='HTML')
+    try:
+        query = update.callback_query
+        user_id = query.from_user.id
+        user_lang = await db.get_user_lang(user_id)
+        texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
+        await query.answer()
+        
+        if query.data == "view_tos":
+            await query.message.reply_text(texts["tos_full"], parse_mode='HTML')
+        elif query.data == "change_lang":
+            buttons = [[{"text": lang, "callback_data": f"setlang_{lang}", "style": "primary"}] for lang in ["English", "Hindi", "French", "Korean", "Russian"]]
+            await query.message.reply_text(f"🌐 <b>{texts['lang']}</b>", reply_markup={"inline_keyboard": buttons}, parse_mode='HTML')
+        elif query.data.startswith("setlang_"):
+            new_lang = query.data.split("_")[1]
+            await db.set_user_lang(user_id, new_lang)
+            await query.message.edit_text(f"✅ Language changed to: <b>{new_lang}</b>", parse_mode='HTML')
+    except Exception as e:
+        logger.error(f"Callback query error: {e}")
 
 async def dl_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await send_reaction(update)
-    user_lang = await db.get_user_lang(update.effective_user.id)
-    texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
-    url = " ".join(context.args)
-    if not url: return await update.message.reply_text("Usage: /dl <url>")
-    msg = await update.message.reply_text(texts["processing"])
-    
-    file_path, info = await universal_dl.download(url, msg, texts)
-    if file_path:
-        caption = await ai_caption.generate_caption(info, language=user_lang)
-        await universal_dl.send_media(update.message, file_path, info, caption)
+    try:
+        await send_reaction(update)
+        user_lang = await db.get_user_lang(update.effective_user.id)
+        texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
+        url = " ".join(context.args)
+        if not url: return await update.message.reply_text("Usage: /dl <url>")
+        msg = await update.message.reply_text(texts["processing"])
+        
+        file_path, info = await universal_dl.download(url, msg, texts)
+        if file_path:
+            caption = await ai_caption.generate_caption(info, language=user_lang)
+            await universal_dl.send_media(update.message, file_path, info, caption)
+    except Exception as e:
+        logger.error(f"DL handler error: {e}")
+        await update.message.reply_text(f"❌ Error: {e}")
 
 async def profile_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await send_reaction(update)
-    username = " ".join(context.args)
-    if not username: return await update.message.reply_text("Usage: /profile <username>")
-    msg = await update.message.reply_text(f"📸 Fetching Instagram profile: @{username}...")
-    
-    # Ensure cookies are loaded for profile fetching
-    cookies = await db.get_cookies("instagram")
-    if cookies:
-        with open("cookies_instagram.txt", "w") as f: f.write(cookies)
-    
-    await insta_dl.download_profile(username, msg)
+    try:
+        await send_reaction(update)
+        username = " ".join(context.args)
+        if not username: return await update.message.reply_text("Usage: /profile <username>")
+        msg = await update.message.reply_text(f"📸 Fetching Instagram profile: @{username}...")
+        
+        # Ensure cookies are loaded for profile fetching
+        cookies = await db.get_cookies("instagram")
+        if cookies:
+            with open("cookies_instagram.txt", "w") as f: f.write(cookies)
+        
+        await insta_dl.download_profile(username, msg)
+    except Exception as e:
+        logger.error(f"Profile handler error: {e}")
+        await update.message.reply_text(f"❌ Profile Error: {e}")
 
 async def music_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await send_reaction(update)
-    user_lang = await db.get_user_lang(update.effective_user.id)
-    texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
-    query = " ".join(context.args)
-    if not query: return await update.message.reply_text("Usage: /music <song name>")
-    msg = await update.message.reply_text(texts["searching"].format(query), parse_mode='HTML')
-    
-    # Ensure cookies are loaded for music search
-    cookies = await db.get_cookies("youtube")
-    if cookies:
-        with open("cookies_youtube.txt", "w") as f: f.write(cookies)
+    try:
+        await send_reaction(update)
+        user_lang = await db.get_user_lang(update.effective_user.id)
+        texts = LANG_DATA.get(user_lang, LANG_DATA["English"])
+        query = " ".join(context.args)
+        if not query: return await update.message.reply_text("Usage: /music <song name>")
+        msg = await update.message.reply_text(texts["searching"].format(query), parse_mode='HTML')
         
-    await music_dl.search_and_download(query, msg)
+        # Ensure cookies are loaded for music search
+        cookies = await db.get_cookies("youtube")
+        if cookies:
+            with open("cookies_youtube.txt", "w") as f: f.write(cookies)
+            
+        await music_dl.search_and_download(query, msg)
+    except Exception as e:
+        logger.error(f"Music handler error: {e}")
+        await update.message.reply_text(f"❌ Music Error: {e}")
 
 async def cookies_handler(update: Update, context: ContextTypes.DEFAULT_TYPE, service=None):
-    user_id = update.effective_user.id
-    if user_id not in Config.OWNER_IDS: return
-    
-    if not service:
-        if context.args: service = context.args[0].lower()
-        else: service = "instagram"
+    try:
+        user_id = update.effective_user.id
+        if user_id not in Config.OWNER_IDS: return
+        
+        if not service:
+            if context.args: service = context.args[0].lower()
+            else: service = "instagram"
 
-    # Check if this is a reply to a document
-    target_msg = update.message
-    if update.message.reply_to_message and update.message.reply_to_message.document:
-        target_msg = update.message.reply_to_message
+        # Check if this is a reply to a document
+        target_msg = update.message
+        if update.message.reply_to_message and update.message.reply_to_message.document:
+            target_msg = update.message.reply_to_message
 
-    if target_msg.document and target_msg.document.file_name.endswith(".txt"):
-        file = await context.bot.get_file(target_msg.document.file_id)
-        content = (await file.download_as_bytearray()).decode('utf-8')
-        await db.save_cookies(service, content)
-        with open(f"cookies_{service}.txt", "w") as f: f.write(content)
-        return await update.message.reply_text(f"✅ Cookies for {service} updated and saved to DB!")
-    
-    await update.message.reply_text(f"❌ Please reply to a .txt file with /{service} to set cookies.")
+        if target_msg.document and target_msg.document.file_name.endswith(".txt"):
+            file = await context.bot.get_file(target_msg.document.file_id)
+            content = (await file.download_as_bytearray()).decode('utf-8')
+            await db.save_cookies(service, content)
+            with open(f"cookies_{service}.txt", "w") as f: f.write(content)
+            return await update.message.reply_text(f"✅ Cookies for {service} updated and saved to DB!")
+        
+        await update.message.reply_text(f"❌ Please reply to a .txt file with /{service} to set cookies.")
+    except Exception as e:
+        logger.error(f"Cookies handler error: {e}")
 
 async def main():
-    asyncio.create_task(start_server())
-    application = ApplicationBuilder().token(Config.BOT_TOKEN).build()
-    
-    # Restore cookies from DB on startup
-    for service in ["instagram", "youtube"]:
-        cookies = await db.get_cookies(service)
-        if cookies:
-            with open(f"cookies_{service}.txt", "w") as f: f.write(cookies)
-            logger.info(f"Restored {service} cookies from database.")
-    
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_handler))
-    application.add_handler(CommandHandler("dl", dl_handler))
-    application.add_handler(CommandHandler("profile", profile_handler))
-    application.add_handler(CommandHandler("music", music_handler))
-    application.add_handler(CommandHandler("insta", lambda u, c: cookies_handler(u, c, "instagram")))
-    application.add_handler(CommandHandler("yt", lambda u, c: cookies_handler(u, c, "youtube")))
-    application.add_handler(MessageHandler(filters.Document.FileExtension("txt"), cookies_handler))
-    application.add_handler(CallbackQueryHandler(callback_query_handler))
-    
-    logger.info("Bot is starting...")
-    await application.initialize()
-    await application.start()
-    await application.updater.start_polling(drop_pending_updates=True)
-    while True: await asyncio.sleep(1)
+    try:
+        asyncio.create_task(start_server())
+        application = ApplicationBuilder().token(Config.BOT_TOKEN).build()
+        
+        # Restore cookies from DB on startup
+        for service in ["instagram", "youtube"]:
+            try:
+                cookies = await db.get_cookies(service)
+                if cookies:
+                    with open(f"cookies_{service}.txt", "w") as f: f.write(cookies)
+                    logger.info(f"Restored {service} cookies from database.")
+            except Exception as e:
+                logger.error(f"Failed to restore {service} cookies: {e}")
+        
+        application.add_handler(CommandHandler("start", start))
+        application.add_handler(CommandHandler("help", help_handler))
+        application.add_handler(CommandHandler("dl", dl_handler))
+        application.add_handler(CommandHandler("profile", profile_handler))
+        application.add_handler(CommandHandler("music", music_handler))
+        application.add_handler(CommandHandler("insta", lambda u, c: cookies_handler(u, c, "instagram")))
+        application.add_handler(CommandHandler("yt", lambda u, c: cookies_handler(u, c, "youtube")))
+        application.add_handler(MessageHandler(filters.Document.FileExtension("txt"), cookies_handler))
+        application.add_handler(CallbackQueryHandler(callback_query_handler))
+        
+        logger.info("Bot is starting...")
+        await application.initialize()
+        await application.start()
+        await application.updater.start_polling(drop_pending_updates=True)
+        while True: await asyncio.sleep(1)
+    except Exception as e:
+        logger.error(f"Main loop error: {e}\n{traceback.format_exc()}")
 
 if __name__ == '__main__':
     asyncio.run(main())
